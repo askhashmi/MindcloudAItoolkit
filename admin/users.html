@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة المستخدمين — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('👥 إدارة المستخدمين');
+  if (admin) {
+    ADMIN.content().innerHTML = `
+      <div class="card">
+        <h2 class="card-title">جميع المستخدمين (<span id="uCount"></span>)</h2>
+        <div class="table-wrap" id="usersTable"></div>
+      </div>`;
+    render();
+  }
+
+  function render() {
+    const users = MC.users();
+    document.getElementById('uCount').textContent = users.length;
+    document.getElementById('usersTable').innerHTML = `
+      <table class="data">
+        <thead><tr><th>الاسم</th><th>البريد</th><th>تاريخ التسجيل</th><th>الطلبات</th><th>الدور</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>${users.map(u => {
+          const isSelf = u.id === admin.id;
+          const orderCount = MC.userOrders(u.id).length;
+          return `
+          <tr>
+            <td><b>${u.name}</b>${isSelf ? ' <span style="color:var(--blue);font-size:.78rem">(أنت)</span>' : ''}</td>
+            <td dir="ltr" style="text-align:end">${u.email}</td>
+            <td>${MC.fmtDate(u.createdAt)}</td>
+            <td>${orderCount}</td>
+            <td><span class="status ${u.role === 'admin' ? 'status-admin' : 'status-active'}">${u.role === 'admin' ? 'مدير' : 'مستخدم'}</span></td>
+            <td><span class="status ${u.active ? 'status-active' : 'status-disabled'}">${u.active ? 'نشط' : 'موقوف'}</span></td>
+            <td style="white-space:nowrap">
+              ${isSelf ? '—' : `
+                <button class="btn btn-blue btn-sm" onclick="toggleRole('${u.id}')">${u.role === 'admin' ? 'إزالة الإدارة' : 'ترقية لمدير'}</button>
+                <button class="btn ${u.active ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="toggleActive('${u.id}')">${u.active ? 'إيقاف' : 'تفعيل'}</button>
+                <button class="btn btn-danger btn-sm" onclick="removeUser('${u.id}')">حذف</button>`}
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`;
+  }
+
+  function toggleRole(id) {
+    const u = MC.users().find(x => x.id === id);
+    MC.updateUser(id, { role: u.role === 'admin' ? 'user' : 'admin' });
+    render();
+    UI.toast('تم تحديث صلاحيات المستخدم ✔️');
+  }
+
+  function toggleActive(id) {
+    const u = MC.users().find(x => x.id === id);
+    MC.updateUser(id, { active: !u.active });
+    render();
+    UI.toast(u.active ? 'تم إيقاف الحساب' : 'تم تفعيل الحساب ✔️');
+  }
+
+  function removeUser(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الحساب نهائيًا؟')) return;
+    MC.deleteUser(id);
+    render();
+    UI.toast('تم حذف الحساب');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>التواصل والدعم الفني — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="page-head">
+    <div class="container">
+      <h1>التواصل والدعم الفني</h1>
+      <p>فريقنا جاهز لمساعدتك — نرد على معظم الرسائل خلال 24 ساعة</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="checkout-grid">
+      <!-- نموذج التواصل -->
+      <div class="card">
+        <h2 class="card-title">📨 أرسل رسالتك</h2>
+        <div class="alert" id="contactAlert"></div>
+        <form id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>الاسم الكامل</label>
+              <input type="text" id="cName" class="form-control" required minlength="3">
+            </div>
+            <div class="form-group">
+              <label>البريد الإلكتروني</label>
+              <input type="email" id="cEmail" class="form-control" required dir="ltr" style="text-align:end">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>نوع الطلب</label>
+            <select id="cSubject" class="form-control">
+              <option>استفسار عام</option>
+              <option>مشكلة في التحميل أو الملف</option>
+              <option>مشكلة في الدفع</option>
+              <option>طلب استرجاع</option>
+              <option>عرض منتجاتي على المنصة</option>
+              <option>اقتراح أو ملاحظة</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>رسالتك</label>
+            <textarea id="cBody" class="form-control" required minlength="10" placeholder="اكتب تفاصيل طلبك هنا... وإن كان لديك رقم طلب فأرفقه لتسريع المعالجة."></textarea>
+          </div>
+          <button class="btn btn-primary btn-lg">إرسال الرسالة</button>
+        </form>
+      </div>
+
+      <!-- معلومات التواصل -->
+      <div>
+        <div class="card" style="margin-bottom:18px">
+          <h2 class="card-title">📞 قنوات التواصل</h2>
+          <ul style="list-style:none;display:grid;gap:14px">
+            <li>✉️ <b>البريد:</b> <a id="infoEmail" href="#"></a></li>
+            <li>📱 <b>الجوال:</b> <a id="infoPhone" href="#" dir="ltr"></a></li>
+            <li>💬 <b>واتساب:</b> <a id="infoWhatsapp" href="#" target="_blank" rel="noopener">تواصل مباشر</a></li>
+            <li>🐦 <b>منصة X:</b> <a id="infoTwitter" href="#" target="_blank" rel="noopener">@mindcloud_sa</a></li>
+          </ul>
+        </div>
+        <div class="card" style="background:var(--navy-dark);color:#C9D4E8">
+          <h2 class="card-title" style="color:#fff">⏰ أوقات الدعم</h2>
+          <p style="font-size:.92rem">الأحد – الخميس: 9 صباحًا – 9 مساءً<br>الجمعة – السبت: 2 ظهرًا – 8 مساءً</p>
+          <p style="font-size:.85rem;margin-top:12px;color:var(--gold)">💡 قبل المراسلة، اطّلع على <a href="faq.html" style="color:var(--gold);text-decoration:underline">الأسئلة الشائعة</a> — قد تجد إجابتك فورًا.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader('contact.html');
+  UI.renderFooter();
+
+  const s = MC.settings();
+  const user = MC.currentUser();
+  document.getElementById('infoEmail').textContent = s.contactEmail;
+  document.getElementById('infoEmail').href = 'mailto:' + s.contactEmail;
+  document.getElementById('infoPhone').textContent = s.contactPhone;
+  document.getElementById('infoPhone').href = 'tel:' + (s.contactPhone || '').replace(/\s/g, '');
+  document.getElementById('infoWhatsapp').href = s.whatsapp;
+  document.getElementById('infoTwitter').href = s.twitter;
+
+  if (user) {
+    document.getElementById('cName').value = user.name;
+    document.getElementById('cEmail').value = user.email;
+  }
+
+  document.getElementById('contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    MC.createMessage({
+      name: document.getElementById('cName').value.trim(),
+      email: document.getElementById('cEmail').value.trim(),
+      subject: document.getElementById('cSubject').value,
+      body: document.getElementById('cBody').value.trim(),
+      userId: user ? user.id : null
+    });
+    UI.alertBox(document.getElementById('contactAlert'), 'وصلتنا رسالتك ✔️ سنرد عليك عبر بريدك الإلكتروني في أقرب وقت.', 'success');
+    e.target.reset();
+    if (user) {
+      document.getElementById('cName').value = user.name;
+      document.getElementById('cEmail').value = user.email;
+    }
+  });
+</script>
+</body>
+</html>

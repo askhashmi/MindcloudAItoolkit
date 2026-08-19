@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الطلبات — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" id="orderModalBody"></div>
+</div>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('🧾 إدارة الطلبات');
+  if (admin) {
+    ADMIN.content().innerHTML = `
+      <div class="card">
+        <h2 class="card-title">جميع الطلبات (<span id="oCount"></span>)</h2>
+        <div class="table-wrap" id="ordersTable"></div>
+      </div>`;
+    render();
+  }
+
+  function userName(id) { return (MC.users().find(u => u.id === id) || {}).name || '—'; }
+
+  function render() {
+    const orders = MC.orders();
+    document.getElementById('oCount').textContent = orders.length;
+    document.getElementById('ordersTable').innerHTML = orders.length ? `
+      <table class="data">
+        <thead><tr><th>الطلب</th><th>العميل</th><th>التاريخ</th><th>الدفع</th><th>الإجمالي</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>${orders.map(o => `
+          <tr>
+            <td><b>${o.id}</b></td>
+            <td>${userName(o.userId)}</td>
+            <td>${MC.fmtDate(o.createdAt)}</td>
+            <td>${o.method}</td>
+            <td><b style="color:var(--green)">${MC.fmtPrice(o.total)}</b></td>
+            <td>
+              <select class="form-control" style="padding:4px 8px;font-size:.82rem;width:auto" onchange="setStatus('${o.id}', this.value)">
+                <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>مكتمل</option>
+                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>قيد المعالجة</option>
+                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
+              </select>
+            </td>
+            <td><button class="btn btn-blue btn-sm" onclick="viewOrder('${o.id}')">التفاصيل</button></td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="empty-state"><span class="ico">🧾</span>لا توجد طلبات بعد — ستظهر هنا فور أول عملية شراء</div>';
+  }
+
+  function setStatus(id, status) {
+    MC.updateOrder(id, { status });
+    UI.toast('تم تحديث حالة الطلب ✔️');
+  }
+
+  function viewOrder(id) {
+    const o = MC.orders().find(x => x.id === id);
+    if (!o) return;
+    document.getElementById('orderModalBody').innerHTML = `
+      <h3>تفاصيل الطلب ${o.id}</h3>
+      <div class="order-summary">
+        ${o.items.map(it => `
+          <div class="cart-item">
+            <div class="thumb ${it.cover}">${it.icon}</div>
+            <div class="info"><b>${it.title}</b><span>${MC.fmtPrice(it.price)}</span></div>
+          </div>`).join('')}
+        <div class="row"><span>العميل</span><span>${userName(o.userId)}</span></div>
+        <div class="row"><span>المجموع الفرعي</span><span>${MC.fmtPrice(o.subtotal)}</span></div>
+        <div class="row"><span>الضريبة</span><span>${MC.fmtPrice(o.vat)}</span></div>
+        <div class="row"><span>وسيلة الدفع</span><span>${o.method}</span></div>
+        <div class="row total"><span>الإجمالي</span><span class="val">${MC.fmtPrice(o.total)}</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="document.getElementById('orderModal').classList.remove('show')">إغلاق</button>
+      </div>`;
+    document.getElementById('orderModal').classList.add('show');
+  }
+</script>
+</body>
+</html>

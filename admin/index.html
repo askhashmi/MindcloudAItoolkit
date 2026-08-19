@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('📊 نظرة عامة');
+  if (admin) {
+    const orders = MC.orders();
+    const users = MC.users();
+    const products = MC.products();
+    const messages = MC.messages();
+    const revenue = orders.filter(o => o.status === 'completed').reduce((s, o) => s + o.total, 0);
+    const newMsgs = messages.filter(m => m.status === 'new').length;
+
+    const topProducts = [...products].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
+    const latestOrders = orders.slice(0, 6);
+    const userName = id => (users.find(u => u.id === id) || {}).name || '—';
+
+    ADMIN.content().innerHTML = `
+      <div class="grid grid-4" style="margin-bottom:26px">
+        <div class="card stat-card"><div class="ico green">💰</div><div><b>${MC.fmtPrice(revenue)}</b><span>إجمالي الإيرادات</span></div></div>
+        <div class="card stat-card"><div class="ico blue">🧾</div><div><b>${orders.length}</b><span>عدد الطلبات</span></div></div>
+        <div class="card stat-card"><div class="ico navy">👥</div><div><b>${users.length}</b><span>المستخدمون المسجّلون</span></div></div>
+        <div class="card stat-card"><div class="ico gold">💬</div><div><b>${newMsgs}</b><span>رسائل دعم جديدة</span></div></div>
+      </div>
+
+      <div class="grid grid-2" style="align-items:start">
+        <div class="card">
+          <h2 class="card-title">أحدث الطلبات <a href="orders.html" class="btn btn-outline btn-sm">عرض الكل</a></h2>
+          <div class="table-wrap">
+            ${latestOrders.length ? `
+            <table class="data">
+              <thead><tr><th>الطلب</th><th>العميل</th><th>الإجمالي</th><th>الحالة</th></tr></thead>
+              <tbody>${latestOrders.map(o => `
+                <tr>
+                  <td><b>${o.id}</b></td>
+                  <td>${userName(o.userId)}</td>
+                  <td>${MC.fmtPrice(o.total)}</td>
+                  <td><span class="status status-${o.status}">${ADMIN.statusLabel[o.status]}</span></td>
+                </tr>`).join('')}</tbody>
+            </table>` : '<div class="empty-state"><span class="ico">🧾</span>لا توجد طلبات بعد</div>'}
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">الأكثر مبيعًا <a href="products.html" class="btn btn-outline btn-sm">إدارة المنتجات</a></h2>
+          ${topProducts.map(p => `
+            <div class="cart-item">
+              <div class="thumb ${p.cover}">${p.icon}</div>
+              <div class="info"><b>${p.title}</b><span>${MC.fmtPrice(p.price)} · ${p.sales || 0} عملية بيع</span></div>
+              <span class="status ${p.active ? 'status-active' : 'status-disabled'}">${p.active ? 'منشور' : 'موقوف'}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة المنتجات — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<!-- نافذة إضافة / تعديل منتج -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <h3 id="modalTitle">إضافة منتج جديد</h3>
+    <form id="productForm">
+      <input type="hidden" id="fId">
+      <div class="form-group">
+        <label>اسم المنتج</label>
+        <input type="text" id="fTitle" class="form-control" required minlength="3">
+      </div>
+      <div class="form-group">
+        <label>الوصف</label>
+        <textarea id="fDesc" class="form-control" required minlength="10" style="min-height:80px"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>التصنيف</label>
+          <select id="fCategory" class="form-control">
+            <option>كتب إلكترونية</option><option>قوالب</option><option>دورات</option>
+            <option>تصاميم</option><option>أدوات</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>الأيقونة (رمز تعبيري)</label>
+          <input type="text" id="fIcon" class="form-control" value="📦" maxlength="4" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>السعر (ر.س)</label>
+          <input type="number" id="fPrice" class="form-control" min="0" step="0.5" required>
+        </div>
+        <div class="form-group">
+          <label>السعر قبل الخصم <span style="font-weight:400">(اختياري)</span></label>
+          <input type="number" id="fOldPrice" class="form-control" min="0" step="0.5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>لون الغلاف</label>
+          <select id="fCover" class="form-control">
+            <option value="cover-1">كحلي → أزرق</option>
+            <option value="cover-2">أخضر</option>
+            <option value="cover-3">ذهبي</option>
+            <option value="cover-4">كحلي داكن</option>
+            <option value="cover-5">أزرق → أخضر</option>
+            <option value="cover-6">كحلي → أخضر</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>منتج مميز؟</label>
+          <select id="fFeatured" class="form-control">
+            <option value="false">لا</option>
+            <option value="true">نعم — يظهر في الرئيسية</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم الملف</label>
+          <input type="text" id="fFileName" class="form-control" placeholder="my-product.pdf" required dir="ltr" style="text-align:end">
+        </div>
+        <div class="form-group">
+          <label>الحجم</label>
+          <input type="text" id="fFileSize" class="form-control" placeholder="12 MB" required dir="ltr" style="text-align:end">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">إلغاء</button>
+        <button type="submit" class="btn btn-primary">حفظ المنتج</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('📦 إدارة المنتجات');
+  if (admin) {
+    ADMIN.content().innerHTML = `
+      <div class="card">
+        <h2 class="card-title">جميع المنتجات (<span id="pCount"></span>)
+          <button class="btn btn-primary btn-sm" onclick="openModal()">+ إضافة منتج</button>
+        </h2>
+        <div class="table-wrap" id="productsTable"></div>
+      </div>`;
+    render();
+  }
+
+  function render() {
+    const products = MC.products();
+    document.getElementById('pCount').textContent = products.length;
+    document.getElementById('productsTable').innerHTML = products.length ? `
+      <table class="data">
+        <thead><tr><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المبيعات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>${products.map(p => `
+          <tr>
+            <td><span style="font-size:1.2rem">${p.icon}</span> <b>${p.title}</b>${p.featured ? ' <span class="status status-pending">⭐ مميز</span>' : ''}</td>
+            <td>${p.category}</td>
+            <td>${MC.fmtPrice(p.price)}</td>
+            <td>${p.sales || 0}</td>
+            <td><span class="status ${p.active ? 'status-active' : 'status-disabled'}">${p.active ? 'منشور' : 'موقوف'}</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-blue btn-sm" onclick="openModal('${p.id}')">تعديل</button>
+              <button class="btn ${p.active ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="toggleActive('${p.id}')">${p.active ? 'إيقاف' : 'نشر'}</button>
+              <button class="btn btn-danger btn-sm" onclick="removeProduct('${p.id}')">حذف</button>
+            </td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="empty-state"><span class="ico">📦</span>لا توجد منتجات — أضف أول منتج الآن</div>';
+  }
+
+  function openModal(id) {
+    const p = id ? MC.product(id) : null;
+    document.getElementById('modalTitle').textContent = p ? 'تعديل المنتج' : 'إضافة منتج جديد';
+    document.getElementById('fId').value = p ? p.id : '';
+    document.getElementById('fTitle').value = p ? p.title : '';
+    document.getElementById('fDesc').value = p ? p.desc : '';
+    document.getElementById('fCategory').value = p ? p.category : 'كتب إلكترونية';
+    document.getElementById('fIcon').value = p ? p.icon : '📦';
+    document.getElementById('fPrice').value = p ? p.price : '';
+    document.getElementById('fOldPrice').value = p && p.oldPrice ? p.oldPrice : '';
+    document.getElementById('fCover').value = p ? p.cover : 'cover-1';
+    document.getElementById('fFeatured').value = p ? String(!!p.featured) : 'false';
+    document.getElementById('fFileName').value = p ? p.file.name : '';
+    document.getElementById('fFileSize').value = p ? p.file.size : '';
+    document.getElementById('productModal').classList.add('show');
+  }
+  const closeModal = () => document.getElementById('productModal').classList.remove('show');
+
+  document.getElementById('productForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const fileName = document.getElementById('fFileName').value.trim();
+    const ext = (fileName.split('.').pop() || 'FILE').toUpperCase();
+    MC.saveProduct({
+      id: document.getElementById('fId').value || undefined,
+      title: document.getElementById('fTitle').value.trim(),
+      desc: document.getElementById('fDesc').value.trim(),
+      category: document.getElementById('fCategory').value,
+      icon: document.getElementById('fIcon').value.trim() || '📦',
+      price: +document.getElementById('fPrice').value,
+      oldPrice: +document.getElementById('fOldPrice').value || null,
+      cover: document.getElementById('fCover').value,
+      featured: document.getElementById('fFeatured').value === 'true',
+      file: { name: fileName, type: ext, size: document.getElementById('fFileSize').value.trim() }
+    });
+    closeModal();
+    render();
+    UI.toast('تم حفظ المنتج بنجاح ✔️');
+  });
+
+  function toggleActive(id) {
+    const p = MC.product(id);
+    MC.saveProduct({ id, active: !p.active });
+    render();
+    UI.toast(p.active ? 'تم إيقاف المنتج' : 'تم نشر المنتج ✔️');
+  }
+
+  function removeProduct(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المنتج نهائيًا؟ (مشتريات العملاء السابقة لن تتأثر)')) return;
+    MC.deleteProduct(id);
+    render();
+    UI.toast('تم حذف المنتج');
+  }
+</script>
+</body>
+</html>

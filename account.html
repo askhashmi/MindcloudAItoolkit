@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حسابي — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="page-head">
+    <div class="container">
+      <h1>حسابي الشخصي</h1>
+      <p>مشترياتك، طلباتك، وإعدادات حسابك في مكان واحد</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="account-grid">
+      <!-- الشريط الجانبي -->
+      <div class="card account-side">
+        <div class="avatar" id="avatar"></div>
+        <div class="name" id="userName"></div>
+        <div class="email" id="userEmail"></div>
+        <ul class="account-menu">
+          <li><button class="active" data-tab="purchases">📥 مشترياتي</button></li>
+          <li><button data-tab="orders">🧾 سجل الطلبات</button></li>
+          <li><button data-tab="profile">⚙️ إعدادات الحساب</button></li>
+          <li><button onclick="doLogout()" style="color:var(--danger)">🚪 تسجيل الخروج</button></li>
+        </ul>
+      </div>
+
+      <!-- المحتوى -->
+      <div>
+        <!-- مشترياتي -->
+        <div class="card tab-panel" id="panel-purchases">
+          <h2 class="card-title">📥 مشترياتي — ملفاتك الرقمية</h2>
+          <div id="purchasesList"></div>
+        </div>
+
+        <!-- سجل الطلبات -->
+        <div class="card tab-panel" id="panel-orders" style="display:none">
+          <h2 class="card-title">🧾 سجل الطلبات</h2>
+          <div class="table-wrap" id="ordersWrap"></div>
+        </div>
+
+        <!-- الإعدادات -->
+        <div class="card tab-panel" id="panel-profile" style="display:none">
+          <h2 class="card-title">⚙️ إعدادات الحساب</h2>
+          <div class="alert" id="profileAlert"></div>
+          <form id="profileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" id="pfName" class="form-control" required minlength="3">
+              </div>
+              <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="pfEmail" class="form-control" required dir="ltr" style="text-align:end">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>كلمة مرور جديدة <span style="font-weight:400;color:var(--ink-soft)">(اتركها فارغة للإبقاء على الحالية)</span></label>
+                <input type="password" id="pfPass" class="form-control" minlength="8">
+              </div>
+              <div class="form-group">
+                <label>تأكيد كلمة المرور الجديدة</label>
+                <input type="password" id="pfPass2" class="form-control">
+              </div>
+            </div>
+            <button class="btn btn-primary">حفظ التغييرات</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader('account.html');
+  UI.renderFooter();
+
+  const user = UI.requireAuth();
+
+  const statusLabel = { completed: 'مكتمل', pending: 'قيد المعالجة', cancelled: 'ملغي' };
+
+  if (user) {
+    document.getElementById('avatar').textContent = UI.initials(user.name);
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userEmail').textContent = user.email;
+
+    // التنقل بين الأقسام
+    document.querySelectorAll('.account-menu button[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.account-menu button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+        document.getElementById('panel-' + btn.dataset.tab).style.display = '';
+      });
+    });
+
+    // مشترياتي
+    const owned = MC.ownedProducts(user.id);
+    document.getElementById('purchasesList').innerHTML = owned.length
+      ? owned.map(it => `
+        <div class="purchase-item">
+          <div class="thumb ${it.cover}">${it.icon}</div>
+          <div class="info">
+            <b>${it.title}</b>
+            <span>${it.file.name} · ${it.file.type} · ${it.file.size} — اشتُري في ${MC.fmtDate(it.date)}</span>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick='MC.downloadFile(${JSON.stringify(it).replace(/'/g, "&#39;")}); UI.toast("بدأ تحميل الملف ⬇️")'>⬇️ تحميل</button>
+        </div>`).join('')
+      : '<div class="empty-state"><span class="ico">🛍️</span>لم تشترِ أي منتج بعد<br><br><a class="btn btn-primary" href="products.html">تصفّح المنتجات</a></div>';
+
+    // سجل الطلبات
+    const myOrders = MC.userOrders(user.id);
+    document.getElementById('ordersWrap').innerHTML = myOrders.length
+      ? `<table class="data">
+          <thead><tr><th>رقم الطلب</th><th>التاريخ</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th></tr></thead>
+          <tbody>${myOrders.map(o => `
+            <tr>
+              <td><b>${o.id}</b></td>
+              <td>${MC.fmtDate(o.createdAt)}</td>
+              <td>${o.items.map(i => i.title).join('، ')}</td>
+              <td><b style="color:var(--green)">${MC.fmtPrice(o.total)}</b></td>
+              <td><span class="status status-${o.status}">${statusLabel[o.status] || o.status}</span></td>
+            </tr>`).join('')}</tbody>
+        </table>`
+      : '<div class="empty-state"><span class="ico">🧾</span>لا توجد طلبات سابقة</div>';
+
+    // الإعدادات
+    document.getElementById('pfName').value = user.name;
+    document.getElementById('pfEmail').value = user.email;
+    document.getElementById('profileForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const alertEl = document.getElementById('profileAlert');
+      const pass = document.getElementById('pfPass').value;
+      if (pass && pass !== document.getElementById('pfPass2').value) {
+        UI.alertBox(alertEl, 'كلمتا المرور غير متطابقتين');
+        return;
+      }
+      try {
+        const patch = { name: document.getElementById('pfName').value.trim(), email: document.getElementById('pfEmail').value };
+        if (pass) patch.pass = pass;
+        MC.updateUser(user.id, patch);
+        UI.alertBox(alertEl, 'تم حفظ التغييرات بنجاح ✔️', 'success');
+        setTimeout(() => location.reload(), 900);
+      } catch (err) { UI.alertBox(alertEl, err.message); }
+    });
+  }
+
+  function doLogout() {
+    MC.logout();
+    location.href = 'index.html';
+  }
+</script>
+</body>
+</html>

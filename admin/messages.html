@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رسائل الدعم — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<div class="modal-overlay" id="msgModal">
+  <div class="modal" id="msgModalBody"></div>
+</div>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('💬 رسائل الدعم الفني');
+  if (admin) {
+    ADMIN.content().innerHTML = `
+      <div class="card">
+        <h2 class="card-title">صندوق الوارد (<span id="mCount"></span>)</h2>
+        <div class="table-wrap" id="msgsTable"></div>
+      </div>`;
+    render();
+  }
+
+  function render() {
+    const msgs = MC.messages();
+    document.getElementById('mCount').textContent = msgs.length;
+    document.getElementById('msgsTable').innerHTML = msgs.length ? `
+      <table class="data">
+        <thead><tr><th>المرسل</th><th>الموضوع</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>${msgs.map(m => `
+          <tr>
+            <td><b>${m.name}</b><br><span dir="ltr" style="font-size:.8rem;color:var(--ink-soft)">${m.email}</span></td>
+            <td>${m.subject}</td>
+            <td>${MC.fmtDate(m.createdAt)}</td>
+            <td><span class="status status-${m.status}">${ADMIN.statusLabel[m.status]}</span></td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-blue btn-sm" onclick="viewMsg('${m.id}')">عرض / رد</button>
+              <button class="btn btn-danger btn-sm" onclick="removeMsg('${m.id}')">حذف</button>
+            </td>
+          </tr>`).join('')}</tbody>
+      </table>` : '<div class="empty-state"><span class="ico">💬</span>لا توجد رسائل دعم — صندوقك نظيف ✨</div>';
+  }
+
+  function viewMsg(id) {
+    const m = MC.messages().find(x => x.id === id);
+    if (!m) return;
+    document.getElementById('msgModalBody').innerHTML = `
+      <h3>${m.subject}</h3>
+      <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:12px">
+        من: <b>${m.name}</b> — <span dir="ltr">${m.email}</span> · ${MC.fmtDate(m.createdAt)}
+      </p>
+      <div class="card" style="background:var(--bg);box-shadow:none;margin-bottom:16px;padding:16px">${m.body}</div>
+      <form id="replyForm">
+        <div class="form-group">
+          <label>الرد</label>
+          <textarea id="replyBody" class="form-control" placeholder="اكتب ردك هنا...">${m.reply || ''}</textarea>
+          <p class="form-hint">يُحفظ الرد في سجل الرسالة (في النسخة الفعلية يُرسل تلقائيًا لبريد العميل).</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('msgModal').classList.remove('show')">إغلاق</button>
+          <button type="button" class="btn btn-dark" onclick="setStatus('${m.id}', 'closed')">إغلاق التذكرة</button>
+          <button type="submit" class="btn btn-primary">حفظ الرد</button>
+        </div>
+      </form>`;
+    document.getElementById('msgModal').classList.add('show');
+    document.getElementById('replyForm').addEventListener('submit', e => {
+      e.preventDefault();
+      MC.updateMessage(id, { reply: document.getElementById('replyBody').value.trim(), status: 'answered' });
+      document.getElementById('msgModal').classList.remove('show');
+      render();
+      UI.toast('تم حفظ الرد ✔️');
+    });
+  }
+
+  function setStatus(id, status) {
+    MC.updateMessage(id, { status });
+    document.getElementById('msgModal').classList.remove('show');
+    render();
+    UI.toast('تم تحديث حالة التذكرة');
+  }
+
+  function removeMsg(id) {
+    if (!confirm('حذف هذه الرسالة نهائيًا؟')) return;
+    MC.deleteMessage(id);
+    render();
+    UI.toast('تم حذف الرسالة');
+  }
+</script>
+</body>
+</html>

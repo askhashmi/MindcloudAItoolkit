@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إعدادات المنصة — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+<script src="../assets/js/store.js"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/admin.js"></script>
+<script>
+  const admin = ADMIN.init('⚙️ إعدادات المنصة');
+  if (admin) {
+    const s = MC.settings();
+    ADMIN.content().innerHTML = `
+      <div class="grid grid-2" style="align-items:start">
+        <div class="card">
+          <h2 class="card-title">🏠 محتوى الصفحة الرئيسية</h2>
+          <form id="heroForm">
+            <div class="form-group">
+              <label>عنوان البطل الرئيسي</label>
+              <input type="text" id="sHeroTitle" class="form-control" value="${s.heroTitle || ''}">
+              <p class="form-hint">ضع النص المراد تلوينه بالذهبي بين نجمتين: *هكذا*</p>
+            </div>
+            <div class="form-group">
+              <label>النص التوضيحي</label>
+              <textarea id="sHeroSub" class="form-control" style="min-height:80px">${s.heroSub || ''}</textarea>
+            </div>
+            <div class="form-group">
+              <label>نسبة ضريبة القيمة المضافة (٪)</label>
+              <input type="number" id="sVat" class="form-control" min="0" max="100" value="${s.vatRate ?? 15}">
+            </div>
+            <button class="btn btn-primary">حفظ</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">📞 معلومات التواصل</h2>
+          <form id="contactForm">
+            <div class="form-group">
+              <label>بريد الدعم</label>
+              <input type="email" id="sEmail" class="form-control" value="${s.contactEmail || ''}" dir="ltr" style="text-align:end">
+            </div>
+            <div class="form-group">
+              <label>رقم الجوال</label>
+              <input type="text" id="sPhone" class="form-control" value="${s.contactPhone || ''}" dir="ltr" style="text-align:end">
+            </div>
+            <div class="form-group">
+              <label>رابط واتساب</label>
+              <input type="url" id="sWhatsapp" class="form-control" value="${s.whatsapp || ''}" dir="ltr" style="text-align:end">
+            </div>
+            <div class="form-group">
+              <label>رابط منصة X</label>
+              <input type="url" id="sTwitter" class="form-control" value="${s.twitter || ''}" dir="ltr" style="text-align:end">
+            </div>
+            <button class="btn btn-primary">حفظ</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <h2 class="card-title">🧹 بيانات تجريبية</h2>
+        <p style="color:var(--ink-soft);font-size:.9rem;margin-bottom:14px">
+          هذه النسخة تخزّن البيانات في متصفحك (localStorage). يمكنك إعادة تهيئة المنصة بالكامل للبيانات الافتراضية —
+          سيُحذف كل شيء عدا حساب الأدمن الافتراضي.
+        </p>
+        <button class="btn btn-danger" onclick="resetAll()">🔄 إعادة تهيئة المنصة</button>
+      </div>`;
+
+    document.getElementById('heroForm').addEventListener('submit', e => {
+      e.preventDefault();
+      MC.saveSettings({
+        heroTitle: document.getElementById('sHeroTitle').value.trim(),
+        heroSub: document.getElementById('sHeroSub').value.trim(),
+        vatRate: +document.getElementById('sVat').value || 15
+      });
+      UI.toast('تم حفظ إعدادات المحتوى ✔️');
+    });
+
+    document.getElementById('contactForm').addEventListener('submit', e => {
+      e.preventDefault();
+      MC.saveSettings({
+        contactEmail: document.getElementById('sEmail').value.trim(),
+        contactPhone: document.getElementById('sPhone').value.trim(),
+        whatsapp: document.getElementById('sWhatsapp').value.trim(),
+        twitter: document.getElementById('sTwitter').value.trim()
+      });
+      UI.toast('تم حفظ معلومات التواصل ✔️');
+    });
+  }
+
+  function resetAll() {
+    if (!confirm('سيتم حذف جميع المنتجات والطلبات والمستخدمين والرسائل وإعادة البيانات الافتراضية. متابعة؟')) return;
+    ['mc_users', 'mc_session', 'mc_products', 'mc_orders', 'mc_messages', 'mc_settings', 'mc_cart', 'mc_seeded_v1']
+      .forEach(k => localStorage.removeItem(k));
+    location.href = '../auth.html';
+  }
+</script>
+</body>
+</html>
