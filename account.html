@@ -110,10 +110,10 @@
     document.getElementById('purchasesList').innerHTML = owned.length
       ? owned.map(it => `
         <div class="purchase-item">
-          <div class="thumb ${it.cover}">${it.icon}</div>
+          <div class="thumb ${it.cover}">${MC.esc(it.icon)}</div>
           <div class="info">
-            <b>${it.title}</b>
-            <span>${it.file.name} · ${it.file.type} · ${it.file.size} — اشتُري في ${MC.fmtDate(it.date)}</span>
+            <b>${MC.esc(it.title)}</b>
+            <span>${MC.esc(it.file.name)} · ${MC.esc(it.file.type)} · ${MC.esc(it.file.size)} — اشتُري في ${MC.fmtDate(it.date)}</span>
           </div>
           <button class="btn btn-primary btn-sm" onclick='MC.downloadFile(${JSON.stringify(it).replace(/'/g, "&#39;")}); UI.toast("بدأ تحميل الملف ⬇️")'>⬇️ تحميل</button>
         </div>`).join('')
@@ -128,7 +128,7 @@
             <tr>
               <td><b>${o.id}</b></td>
               <td>${MC.fmtDate(o.createdAt)}</td>
-              <td>${o.items.map(i => i.title).join('، ')}</td>
+              <td>${o.items.map(i => MC.esc(i.title)).join('، ')}</td>
               <td><b style="color:var(--green)">${MC.fmtPrice(o.total)}</b></td>
               <td><span class="status status-${o.status}">${statusLabel[o.status] || o.status}</span></td>
             </tr>`).join('')}</tbody>

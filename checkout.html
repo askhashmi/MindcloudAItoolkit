@@ -98,8 +98,8 @@
 
     document.getElementById('cartItems').innerHTML = items.map(p => `
       <div class="cart-item">
-        <div class="thumb ${p.cover}">${p.icon}</div>
-        <div class="info"><b>${p.title}</b><span>${MC.fmtPrice(p.price)}</span></div>
+        <div class="thumb ${p.cover}">${MC.esc(p.icon)}</div>
+        <div class="info"><b>${MC.esc(p.title)}</b><span>${MC.fmtPrice(p.price)}</span></div>
         <button class="rm" title="إزالة" onclick="removeItem('${p.id}')">✕</button>
       </div>`).join('');
 

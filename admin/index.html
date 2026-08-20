@@ -25,7 +25,7 @@
 
     const topProducts = [...products].sort((a, b) => (b.sales || 0) - (a.sales || 0)).slice(0, 5);
     const latestOrders = orders.slice(0, 6);
-    const userName = id => (users.find(u => u.id === id) || {}).name || '—';
+    const userName = id => MC.esc((users.find(u => u.id === id) || {}).name || '—');
 
     ADMIN.content().innerHTML = `
       <div class="grid grid-4" style="margin-bottom:26px">
@@ -58,7 +58,7 @@
           ${topProducts.map(p => `
             <div class="cart-item">
               <div class="thumb ${p.cover}">${p.icon}</div>
-              <div class="info"><b>${p.title}</b><span>${MC.fmtPrice(p.price)} · ${p.sales || 0} عملية بيع</span></div>
+              <div class="info"><b>${MC.esc(p.title)}</b><span>${MC.fmtPrice(p.price)} · ${p.sales || 0} عملية بيع</span></div>
               <span class="status ${p.active ? 'status-active' : 'status-disabled'}">${p.active ? 'منشور' : 'موقوف'}</span>
             </div>`).join('')}
         </div>

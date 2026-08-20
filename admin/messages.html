@@ -36,8 +36,8 @@
         <thead><tr><th>المرسل</th><th>الموضوع</th><th>التاريخ</th><th>الحالة</th><th>إجراءات</th></tr></thead>
         <tbody>${msgs.map(m => `
           <tr>
-            <td><b>${m.name}</b><br><span dir="ltr" style="font-size:.8rem;color:var(--ink-soft)">${m.email}</span></td>
-            <td>${m.subject}</td>
+            <td><b>${MC.esc(m.name)}</b><br><span dir="ltr" style="font-size:.8rem;color:var(--ink-soft)">${MC.esc(m.email)}</span></td>
+            <td>${MC.esc(m.subject)}</td>
             <td>${MC.fmtDate(m.createdAt)}</td>
             <td><span class="status status-${m.status}">${ADMIN.statusLabel[m.status]}</span></td>
             <td style="white-space:nowrap">
@@ -52,15 +52,15 @@
     const m = MC.messages().find(x => x.id === id);
     if (!m) return;
     document.getElementById('msgModalBody').innerHTML = `
-      <h3>${m.subject}</h3>
+      <h3>${MC.esc(m.subject)}</h3>
       <p style="font-size:.85rem;color:var(--ink-soft);margin-bottom:12px">
-        من: <b>${m.name}</b> — <span dir="ltr">${m.email}</span> · ${MC.fmtDate(m.createdAt)}
+        من: <b>${MC.esc(m.name)}</b> — <span dir="ltr">${MC.esc(m.email)}</span> · ${MC.fmtDate(m.createdAt)}
       </p>
-      <div class="card" style="background:var(--bg);box-shadow:none;margin-bottom:16px;padding:16px">${m.body}</div>
+      <div class="card" style="background:var(--bg);box-shadow:none;margin-bottom:16px;padding:16px;white-space:pre-wrap">${MC.esc(m.body)}</div>
       <form id="replyForm">
         <div class="form-group">
           <label>الرد</label>
-          <textarea id="replyBody" class="form-control" placeholder="اكتب ردك هنا...">${m.reply || ''}</textarea>
+          <textarea id="replyBody" class="form-control" placeholder="اكتب ردك هنا...">${MC.esc(m.reply || '')}</textarea>
           <p class="form-hint">يُحفظ الرد في سجل الرسالة (في النسخة الفعلية يُرسل تلقائيًا لبريد العميل).</p>
         </div>
         <div class="modal-actions">

@@ -28,7 +28,7 @@
     render();
   }
 
-  function userName(id) { return (MC.users().find(u => u.id === id) || {}).name || '—'; }
+  function userName(id) { return MC.esc((MC.users().find(u => u.id === id) || {}).name || '—'); }
 
   function render() {
     const orders = MC.orders();
@@ -41,7 +41,7 @@
             <td><b>${o.id}</b></td>
             <td>${userName(o.userId)}</td>
             <td>${MC.fmtDate(o.createdAt)}</td>
-            <td>${o.method}</td>
+            <td>${MC.esc(o.method)}</td>
             <td><b style="color:var(--green)">${MC.fmtPrice(o.total)}</b></td>
             <td>
               <select class="form-control" style="padding:4px 8px;font-size:.82rem;width:auto" onchange="setStatus('${o.id}', this.value)">
@@ -69,12 +69,12 @@
         ${o.items.map(it => `
           <div class="cart-item">
             <div class="thumb ${it.cover}">${it.icon}</div>
-            <div class="info"><b>${it.title}</b><span>${MC.fmtPrice(it.price)}</span></div>
+            <div class="info"><b>${MC.esc(it.title)}</b><span>${MC.fmtPrice(it.price)}</span></div>
           </div>`).join('')}
         <div class="row"><span>العميل</span><span>${userName(o.userId)}</span></div>
         <div class="row"><span>المجموع الفرعي</span><span>${MC.fmtPrice(o.subtotal)}</span></div>
         <div class="row"><span>الضريبة</span><span>${MC.fmtPrice(o.vat)}</span></div>
-        <div class="row"><span>وسيلة الدفع</span><span>${o.method}</span></div>
+        <div class="row"><span>وسيلة الدفع</span><span>${MC.esc(o.method)}</span></div>
         <div class="row total"><span>الإجمالي</span><span class="val">${MC.fmtPrice(o.total)}</span></div>
       </div>
       <div class="modal-actions">

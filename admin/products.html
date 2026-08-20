@@ -109,8 +109,8 @@
         <thead><tr><th>المنتج</th><th>التصنيف</th><th>السعر</th><th>المبيعات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
         <tbody>${products.map(p => `
           <tr>
-            <td><span style="font-size:1.2rem">${p.icon}</span> <b>${p.title}</b>${p.featured ? ' <span class="status status-pending">⭐ مميز</span>' : ''}</td>
-            <td>${p.category}</td>
+            <td><span style="font-size:1.2rem">${MC.esc(p.icon)}</span> <b>${MC.esc(p.title)}</b>${p.featured ? ' <span class="status status-pending">⭐ مميز</span>' : ''}</td>
+            <td>${MC.esc(p.category)}</td>
             <td>${MC.fmtPrice(p.price)}</td>
             <td>${p.sales || 0}</td>
             <td><span class="status ${p.active ? 'status-active' : 'status-disabled'}">${p.active ? 'منشور' : 'موقوف'}</span></td>

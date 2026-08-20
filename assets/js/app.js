@@ -118,13 +118,13 @@ const UI = (() => {
   const productCardHTML = (p, owned = false) => `
     <article class="product-card">
       <div class="product-cover ${p.cover}">
-        <span class="cat-tag">${p.category}</span>
+        <span class="cat-tag">${MC.esc(p.category)}</span>
         ${p.featured ? '<span class="badge-featured">⭐ مميز</span>' : ''}
-        ${p.icon}
+        ${MC.esc(p.icon)}
       </div>
       <div class="product-body">
-        <h3>${p.title}</h3>
-        <p class="desc">${p.desc}</p>
+        <h3>${MC.esc(p.title)}</h3>
+        <p class="desc">${MC.esc(p.desc)}</p>
         <div class="product-meta">
           <span class="price">${MC.fmtPrice(p.price)}${p.oldPrice ? `<span class="old">${MC.fmtPrice(p.oldPrice)}</span>` : ''}</span>
           <span class="sales-count">⬇️ ${p.sales || 0} عملية شراء</span>

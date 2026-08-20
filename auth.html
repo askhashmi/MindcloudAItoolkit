@@ -70,7 +70,12 @@
   UI.renderFooter();
 
   const params = new URLSearchParams(location.search);
-  const next = params.get('next') || 'account.html';
+  // نقبل فقط مسارًا نسبيًا داخل الموقع (صفحة .html محلية) لمنع إعادة التوجيه المفتوح وحقن javascript:
+  function safeNext(raw) {
+    const val = (raw || '').trim();
+    return /^[\w-]+(\/[\w-]+)*\.html([?#][^\s]*)?$/.test(val) ? val : 'account.html';
+  }
+  const next = safeNext(params.get('next'));
 
   // المستخدم المسجّل دخوله لا يحتاج هذه الصفحة
   if (MC.currentUser()) location.replace(next);

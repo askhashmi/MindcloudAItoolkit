@@ -96,7 +96,7 @@
 
   function resetAll() {
     if (!confirm('سيتم حذف جميع المنتجات والطلبات والمستخدمين والرسائل وإعادة البيانات الافتراضية. متابعة؟')) return;
-    ['mc_users', 'mc_session', 'mc_products', 'mc_orders', 'mc_messages', 'mc_settings', 'mc_cart', 'mc_seeded_v1']
+    ['mc_users', 'mc_session', 'mc_products', 'mc_orders', 'mc_messages', 'mc_settings', 'mc_cart', 'mc_seeded_v2']
       .forEach(k => localStorage.removeItem(k));
     location.href = '../auth.html';
   }

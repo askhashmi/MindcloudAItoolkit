@@ -35,8 +35,8 @@
           const orderCount = MC.userOrders(u.id).length;
           return `
           <tr>
-            <td><b>${u.name}</b>${isSelf ? ' <span style="color:var(--blue);font-size:.78rem">(أنت)</span>' : ''}</td>
-            <td dir="ltr" style="text-align:end">${u.email}</td>
+            <td><b>${MC.esc(u.name)}</b>${isSelf ? ' <span style="color:var(--blue);font-size:.78rem">(أنت)</span>' : ''}</td>
+            <td dir="ltr" style="text-align:end">${MC.esc(u.email)}</td>
             <td>${MC.fmtDate(u.createdAt)}</td>
             <td>${orderCount}</td>
             <td><span class="status ${u.role === 'admin' ? 'status-admin' : 'status-active'}">${u.role === 'admin' ? 'مدير' : 'مستخدم'}</span></td>

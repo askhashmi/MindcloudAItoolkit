@@ -13,7 +13,7 @@ const MC = (() => {
     messages: 'mc_messages',
     settings: 'mc_settings',
     cart: 'mc_cart',
-    seeded: 'mc_seeded_v1'
+    seeded: 'mc_seeded_v2'
   };
 
   const read = (k, fallback) => {
@@ -23,12 +23,46 @@ const MC = (() => {
   const write = (k, v) => localStorage.setItem(k, JSON.stringify(v));
   const uid = (p = '') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-  // تجزئة مبسطة لكلمات المرور (نسخة تجريبية — الإنتاج يتطلب خادمًا وتجزئة حقيقية)
-  const hash = (s) => {
-    let h = 5381;
-    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
-    return 'h' + h.toString(36) + s.length;
-  };
+  // تهريب رموز HTML — يُستخدم عند إدراج أي نص من المستخدم داخل innerHTML لمنع XSS
+  const esc = (s) => String(s ?? '').replace(/[&<>"'`]/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' }[c]));
+
+  /* ---------- تجزئة كلمة المرور ----------
+     نسخة تجريبية Front-End: تجزئة مملّحة ومكرّرة (أفضل من تجزئة بسيطة قابلة للعكس)،
+     لكنها ليست بديلًا عن KDF على خادم (bcrypt/argon2). الإنتاج يتطلب تجزئة خادمية.
+     الصيغة المخزّنة: "salt$hex128" */
+  const HASH_ROUNDS = 6000;
+  function randSalt() {
+    if (window.crypto && crypto.getRandomValues) {
+      const a = new Uint32Array(4); crypto.getRandomValues(a);
+      return Array.from(a, x => x.toString(16).padStart(8, '0')).join('');
+    }
+    return (Math.random().toString(16) + Date.now().toString(16)).replace(/\./g, '').slice(0, 32);
+  }
+  function hashWith(pass, salt) {
+    const input = salt + '::' + String(pass);
+    let a = [0x811c9dc5, 5381, 0x1000193, 52711].map(x => x >>> 0);
+    for (let r = 0; r < HASH_ROUNDS; r++) {
+      for (let i = 0; i < input.length; i++) {
+        const c = (input.charCodeAt(i) ^ (r & 0xff)) >>> 0;
+        for (let k = 0; k < a.length; k++) {
+          a[k] = (((a[k] * 33) >>> 0) ^ c ^ a[(k + 1) % a.length]) >>> 0;
+        }
+      }
+    }
+    return a.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+  }
+  const hash = (pass) => { const salt = randSalt(); return salt + '$' + hashWith(pass, salt); };
+  function verify(pass, stored) {
+    if (typeof stored !== 'string' || stored.indexOf('$') === -1) return false;
+    const [salt, hex] = stored.split('$');
+    const a = hashWith(pass, salt);
+    // مقارنة بزمن ثابت لتفادي تسريب التوقيت
+    if (a.length !== (hex || '').length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ hex.charCodeAt(i);
+    return diff === 0;
+  }
 
   const fmtPrice = (n) => Number(n).toLocaleString('ar-SA', { maximumFractionDigits: 2 }) + ' ر.س';
   const fmtDate = (iso) => new Date(iso).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -99,8 +133,8 @@ const MC = (() => {
 
   function login(email, pass) {
     email = email.trim().toLowerCase();
-    const u = users().find(u => u.email === email && u.pass === hash(pass));
-    if (!u) throw new Error('بيانات الدخول غير صحيحة');
+    const u = users().find(u => u.email === email);
+    if (!u || !verify(pass, u.pass)) throw new Error('بيانات الدخول غير صحيحة');
     if (!u.active) throw new Error('هذا الحساب موقوف — تواصل مع الدعم الفني');
     write(K.session, { userId: u.id });
     return u;
@@ -259,6 +293,6 @@ const MC = (() => {
     orders, userOrders, createOrder, updateOrder, ownedProducts, ownsProduct,
     messages, createMessage, updateMessage, deleteMessage,
     settings, saveSettings,
-    downloadFile, fmtPrice, fmtDate
+    downloadFile, fmtPrice, fmtDate, esc
   };
 })();

@@ -59,8 +59,8 @@
     document.getElementById('orderId').textContent = '#' + order.id;
     document.getElementById('orderItems').innerHTML = order.items.map(it => `
       <div class="cart-item">
-        <div class="thumb ${it.cover}">${it.icon}</div>
-        <div class="info"><b>${it.title}</b><span>${MC.fmtPrice(it.price)}</span></div>
+        <div class="thumb ${it.cover}">${MC.esc(it.icon)}</div>
+        <div class="info"><b>${MC.esc(it.title)}</b><span>${MC.fmtPrice(it.price)}</span></div>
       </div>`).join('');
     document.getElementById('oSubtotal').textContent = MC.fmtPrice(order.subtotal);
     document.getElementById('oVat').textContent = MC.fmtPrice(order.vat);
@@ -70,8 +70,8 @@
 
     document.getElementById('downloadList').innerHTML = order.items.map((it, i) => `
       <div class="purchase-item">
-        <div class="thumb ${it.cover}">${it.icon}</div>
-        <div class="info"><b>${it.title}</b><span>${it.file.name} · ${it.file.type} · ${it.file.size}</span></div>
+        <div class="thumb ${it.cover}">${MC.esc(it.icon)}</div>
+        <div class="info"><b>${MC.esc(it.title)}</b><span>${MC.esc(it.file.name)} · ${MC.esc(it.file.type)} · ${MC.esc(it.file.size)}</span></div>
         <button class="btn btn-primary btn-sm" onclick='MC.downloadFile(${JSON.stringify(it).replace(/'/g, "&#39;")}); UI.toast("بدأ تحميل الملف ⬇️")'>⬇️ تحميل</button>
       </div>`).join('');
   }
