@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إتمام الشراء — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="page-head">
+    <div class="container">
+      <h1>إتمام الشراء</h1>
+      <p>خطوة واحدة تفصلك عن ملفاتك الرقمية</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="emptyCart" class="empty-state" style="display:none">
+      <span class="ico">🛒</span>
+      سلتك فارغة حاليًا<br><br>
+      <a class="btn btn-primary" href="products.html">تصفّح المنتجات</a>
+    </div>
+
+    <div class="checkout-grid" id="checkoutGrid">
+      <!-- بيانات الدفع -->
+      <div class="card">
+        <h2 class="card-title">💳 بيانات الدفع</h2>
+        <div class="alert alert-info show">🔒 بيئة تجريبية — لن يتم خصم أي مبلغ حقيقي. عند الربط ببوابة دفع مرخّصة تتم المعالجة الفعلية.</div>
+        <div class="alert" id="payAlert"></div>
+
+        <label style="font-weight:700;font-size:.92rem;color:var(--navy-mid);display:block;margin-bottom:8px">اختر وسيلة الدفع</label>
+        <div class="pay-methods" id="payMethods">
+          <button type="button" class="pay-method selected" data-method="مدى"><span class="ico">🟢</span>مدى</button>
+          <button type="button" class="pay-method" data-method="بطاقة ائتمانية"><span class="ico">💳</span>فيزا / ماستركارد</button>
+          <button type="button" class="pay-method" data-method="Apple Pay"><span class="ico"></span>Apple Pay</button>
+        </div>
+
+        <form id="payForm">
+          <div id="cardFields">
+            <div class="form-group">
+              <label>الاسم على البطاقة</label>
+              <input type="text" id="cardName" class="form-control" placeholder="AHMED ALQAHTANI" required>
+            </div>
+            <div class="form-group">
+              <label>رقم البطاقة</label>
+              <input type="text" id="cardNumber" class="form-control" placeholder="4111 1111 1111 1111" inputmode="numeric" maxlength="19" required dir="ltr" style="text-align:end">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>تاريخ الانتهاء</label>
+                <input type="text" id="cardExp" class="form-control" placeholder="MM/YY" maxlength="5" required dir="ltr" style="text-align:end">
+              </div>
+              <div class="form-group">
+                <label>رمز الأمان CVV</label>
+                <input type="password" id="cardCvv" class="form-control" placeholder="•••" maxlength="4" inputmode="numeric" required dir="ltr" style="text-align:end">
+              </div>
+            </div>
+          </div>
+          <div id="applePayNote" class="alert alert-info" style="display:none"> سيُطلب تأكيد الدفع من جهازك مباشرة.</div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="payBtn">ادفع الآن</button>
+        </form>
+      </div>
+
+      <!-- ملخص الطلب -->
+      <div class="card order-summary">
+        <h2 class="card-title">🧾 ملخص الطلب</h2>
+        <div id="cartItems"></div>
+        <div class="row"><span>المجموع الفرعي</span><span id="sumSubtotal"></span></div>
+        <div class="row"><span>ضريبة القيمة المضافة (<span id="vatRate">15</span>٪)</span><span id="sumVat"></span></div>
+        <div class="row total"><span>الإجمالي</span><span class="val" id="sumTotal"></span></div>
+        <p style="font-size:.8rem;color:var(--ink-soft);margin-top:14px">⚡ التسليم فوري — تظهر ملفاتك في حسابك بمجرد إتمام الدفع.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader();
+  UI.renderFooter();
+
+  let method = 'مدى';
+  const vatRate = MC.settings().vatRate || 15;
+  document.getElementById('vatRate').textContent = vatRate;
+
+  function renderCart() {
+    const ids = MC.cart();
+    const items = ids.map(id => MC.product(id)).filter(Boolean);
+    const empty = !items.length;
+    document.getElementById('emptyCart').style.display = empty ? '' : 'none';
+    document.getElementById('checkoutGrid').style.display = empty ? 'none' : '';
+    if (empty) return;
+
+    document.getElementById('cartItems').innerHTML = items.map(p => `
+      <div class="cart-item">
+        <div class="thumb ${p.cover}">${MC.esc(p.icon)}</div>
+        <div class="info"><b>${MC.esc(p.title)}</b><span>${MC.fmtPrice(p.price)}</span></div>
+        <button class="rm" title="إزالة" onclick="removeItem('${p.id}')">✕</button>
+      </div>`).join('');
+
+    const subtotal = items.reduce((s, p) => s + p.price, 0);
+    const vat = subtotal * vatRate / 100;
+    document.getElementById('sumSubtotal').textContent = MC.fmtPrice(subtotal);
+    document.getElementById('sumVat').textContent = MC.fmtPrice(vat);
+    document.getElementById('sumTotal').textContent = MC.fmtPrice(subtotal + vat);
+  }
+
+  function removeItem(id) {
+    MC.removeFromCart(id);
+    UI.refreshCartBadge();
+    renderCart();
+  }
+
+  // اختيار وسيلة الدفع
+  document.getElementById('payMethods').addEventListener('click', e => {
+    const btn = e.target.closest('.pay-method');
+    if (!btn) return;
+    method = btn.dataset.method;
+    document.querySelectorAll('.pay-method').forEach(b => b.classList.toggle('selected', b === btn));
+    const isApple = method === 'Apple Pay';
+    document.getElementById('cardFields').style.display = isApple ? 'none' : '';
+    document.getElementById('applePayNote').style.display = isApple ? '' : 'none';
+    document.querySelectorAll('#cardFields input').forEach(i => i.required = !isApple);
+  });
+
+  // تنسيق رقم البطاقة وتاريخ الانتهاء تلقائيًا
+  document.getElementById('cardNumber').addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
+  });
+  document.getElementById('cardExp').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+    e.target.value = v.length > 2 ? v.slice(0, 2) + '/' + v.slice(2) : v;
+  });
+
+  document.getElementById('payForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const user = MC.currentUser();
+    if (!user) {
+      location.href = 'auth.html?next=' + encodeURIComponent('checkout.html');
+      return;
+    }
+    const alertEl = document.getElementById('payAlert');
+    if (method !== 'Apple Pay') {
+      const num = document.getElementById('cardNumber').value.replace(/\s/g, '');
+      if (num.length < 15) { UI.alertBox(alertEl, 'رقم البطاقة غير مكتمل'); return; }
+      if (!/^\d{2}\/\d{2}$/.test(document.getElementById('cardExp').value)) { UI.alertBox(alertEl, 'تاريخ الانتهاء غير صحيح (MM/YY)'); return; }
+    }
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ معالجة الدفع...';
+    setTimeout(() => {
+      const order = MC.createOrder(user.id, MC.cart(), method);
+      MC.clearCart();
+      location.href = 'confirmation.html?order=' + order.id;
+    }, 1200);
+  });
+
+  renderCart();
+</script>
+</body>
+</html>

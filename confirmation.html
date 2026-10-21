@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تأكيد الطلب — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="confirm-hero">
+    <div class="check">✓</div>
+    <h1>تم الدفع بنجاح — شكرًا لك! 🎉</h1>
+    <p>ملفاتك جاهزة للتحميل الآن، وستبقى محفوظة في حسابك الشخصي.</p>
+  </div>
+
+  <div class="container" style="max-width:760px">
+    <div class="card" style="margin-bottom:20px">
+      <h2 class="card-title">🧾 تفاصيل الطلب <span id="orderId" style="color:var(--blue);font-size:.95rem"></span></h2>
+      <div class="order-summary">
+        <div id="orderItems"></div>
+        <div class="row"><span>المجموع الفرعي</span><span id="oSubtotal"></span></div>
+        <div class="row"><span>ضريبة القيمة المضافة</span><span id="oVat"></span></div>
+        <div class="row"><span>وسيلة الدفع</span><span id="oMethod"></span></div>
+        <div class="row"><span>التاريخ</span><span id="oDate"></span></div>
+        <div class="row total"><span>الإجمالي المدفوع</span><span class="val" id="oTotal"></span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <h2 class="card-title">⬇️ حمّل ملفاتك الآن</h2>
+      <div id="downloadList"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px">
+      <a href="account.html" class="btn btn-primary btn-lg">👤 الذهاب إلى حسابي</a>
+      <a href="products.html" class="btn btn-outline btn-lg">متابعة التسوق</a>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader();
+  UI.renderFooter();
+
+  const user = UI.requireAuth();
+  const orderId = new URLSearchParams(location.search).get('order');
+  const order = MC.orders().find(o => o.id === orderId && o.userId === (user && user.id));
+
+  if (user && !order) {
+    document.querySelector('main').innerHTML =
+      '<div class="empty-state" style="padding:80px 20px"><span class="ico">❓</span>لم نعثر على هذا الطلب<br><br><a class="btn btn-primary" href="account.html">الذهاب إلى حسابي</a></div>';
+  } else if (order) {
+    document.getElementById('orderId').textContent = '#' + order.id;
+    document.getElementById('orderItems').innerHTML = order.items.map(it => `
+      <div class="cart-item">
+        <div class="thumb ${it.cover}">${MC.esc(it.icon)}</div>
+        <div class="info"><b>${MC.esc(it.title)}</b><span>${MC.fmtPrice(it.price)}</span></div>
+      </div>`).join('');
+    document.getElementById('oSubtotal').textContent = MC.fmtPrice(order.subtotal);
+    document.getElementById('oVat').textContent = MC.fmtPrice(order.vat);
+    document.getElementById('oMethod').textContent = order.method;
+    document.getElementById('oDate').textContent = MC.fmtDate(order.createdAt);
+    document.getElementById('oTotal').textContent = MC.fmtPrice(order.total);
+
+    document.getElementById('downloadList').innerHTML = order.items.map((it, i) => `
+      <div class="purchase-item">
+        <div class="thumb ${it.cover}">${MC.esc(it.icon)}</div>
+        <div class="info"><b>${MC.esc(it.title)}</b><span>${MC.esc(it.file.name)} · ${MC.esc(it.file.type)} · ${MC.esc(it.file.size)}</span></div>
+        <button class="btn btn-primary btn-sm" onclick='MC.downloadFile(${JSON.stringify(it).replace(/'/g, "&#39;")}); UI.toast("بدأ تحميل الملف ⬇️")'>⬇️ تحميل</button>
+      </div>`).join('');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>التسجيل والدخول — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="auth-wrap">
+    <div class="card auth-card">
+      <h1 id="authTitle">مرحبًا بك 👋</h1>
+      <p class="sub">سجّل دخولك أو أنشئ حسابًا جديدًا للوصول لمشترياتك</p>
+
+      <div class="auth-tabs">
+        <button id="tabLogin" class="active" onclick="switchTab('login')">تسجيل الدخول</button>
+        <button id="tabRegister" onclick="switchTab('register')">حساب جديد</button>
+      </div>
+
+      <div class="alert" id="authAlert"></div>
+
+      <!-- نموذج الدخول -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">البريد الإلكتروني</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com" required dir="ltr" style="text-align:end">
+        </div>
+        <div class="form-group">
+          <label for="loginPass">كلمة المرور</label>
+          <input type="password" id="loginPass" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">دخول</button>
+      </form>
+
+      <!-- نموذج التسجيل -->
+      <form id="registerForm" style="display:none">
+        <div class="form-group">
+          <label for="regName">الاسم الكامل</label>
+          <input type="text" id="regName" class="form-control" placeholder="مثال: سارة العتيبي" required minlength="3">
+        </div>
+        <div class="form-group">
+          <label for="regEmail">البريد الإلكتروني</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="you@example.com" required dir="ltr" style="text-align:end">
+        </div>
+        <div class="form-group">
+          <label for="regPass">كلمة المرور</label>
+          <input type="password" id="regPass" class="form-control" placeholder="8 أحرف على الأقل" required minlength="8">
+          <p class="form-hint">استخدم 8 أحرف على الأقل مع أرقام ورموز لحماية أفضل.</p>
+        </div>
+        <div class="form-group">
+          <label for="regPass2">تأكيد كلمة المرور</label>
+          <input type="password" id="regPass2" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">إنشاء الحساب</button>
+      </form>
+
+      <p class="auth-alt">بإنشائك حسابًا فأنت توافق على <a href="terms.html">الشروط وسياسة الخصوصية</a></p>
+    </div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader('auth.html');
+  UI.renderFooter();
+
+  const params = new URLSearchParams(location.search);
+  // نقبل فقط مسارًا نسبيًا داخل الموقع (صفحة .html محلية) لمنع إعادة التوجيه المفتوح وحقن javascript:
+  function safeNext(raw) {
+    const val = (raw || '').trim();
+    return /^[\w-]+(\/[\w-]+)*\.html([?#][^\s]*)?$/.test(val) ? val : 'account.html';
+  }
+  const next = safeNext(params.get('next'));
+
+  // المستخدم المسجّل دخوله لا يحتاج هذه الصفحة
+  if (MC.currentUser()) location.replace(next);
+
+  const alertEl = document.getElementById('authAlert');
+
+  function switchTab(tab) {
+    document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+    document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none';
+    document.getElementById('authTitle').textContent = tab === 'login' ? 'مرحبًا بعودتك 👋' : 'أنشئ حسابك 🚀';
+    alertEl.classList.remove('show');
+  }
+  if (params.get('tab') === 'register') switchTab('register');
+
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    e.preventDefault();
+    try {
+      const u = MC.login(document.getElementById('loginEmail').value, document.getElementById('loginPass').value);
+      location.href = u.role === 'admin' && next === 'account.html' ? 'admin/index.html' : next;
+    } catch (err) { UI.alertBox(alertEl, err.message); }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const pass = document.getElementById('regPass').value;
+    if (pass !== document.getElementById('regPass2').value) {
+      UI.alertBox(alertEl, 'كلمتا المرور غير متطابقتين');
+      return;
+    }
+    try {
+      MC.register(document.getElementById('regName').value, document.getElementById('regEmail').value, pass);
+      location.href = next;
+    } catch (err) { UI.alertBox(alertEl, err.message); }
+  });
+</script>
+</body>
+</html>

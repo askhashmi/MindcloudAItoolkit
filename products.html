@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المنتجات — Mind Cloud .sa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<main>
+  <div class="page-head">
+    <div class="container">
+      <h1>المنتجات الرقمية</h1>
+      <p>كتب إلكترونية، قوالب جاهزة، دورات تدريبية وأدوات احترافية — كلها بتحميل فوري.</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="filters">
+      <input type="search" id="searchBox" class="form-control search" placeholder="🔍 ابحث عن منتج...">
+      <div id="catChips"></div>
+    </div>
+    <div class="grid grid-3" id="productsGrid"></div>
+  </div>
+</main>
+
+<script src="assets/js/store.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+  UI.renderHeader('products.html');
+  UI.renderFooter();
+
+  const all = MC.products(true);
+  const user = MC.currentUser();
+  const cats = ['الكل', ...new Set(all.map(p => p.category))];
+  let activeCat = 'الكل', query = '';
+
+  const chipsEl = document.getElementById('catChips');
+  chipsEl.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+  chipsEl.innerHTML = cats.map(c => `<button class="chip ${c === 'الكل' ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('');
+  chipsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    activeCat = btn.dataset.cat;
+    chipsEl.querySelectorAll('.chip').forEach(b => b.classList.toggle('active', b === btn));
+    render();
+  });
+
+  document.getElementById('searchBox').addEventListener('input', e => { query = e.target.value.trim(); render(); });
+
+  function render() {
+    const list = all.filter(p =>
+      (activeCat === 'الكل' || p.category === activeCat) &&
+      (!query || (p.title + ' ' + p.desc).includes(query))
+    );
+    document.getElementById('productsGrid').innerHTML =
+      list.map(p => UI.productCardHTML(p, user && MC.ownsProduct(user.id, p.id))).join('') ||
+      '<div class="empty-state" style="grid-column:1/-1"><span class="ico">🔍</span>لا توجد نتائج مطابقة لبحثك</div>';
+  }
+  render();
+</script>
+</body>
+</html>
