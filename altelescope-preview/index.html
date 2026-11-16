@@ -1,0 +1,566 @@
+<title>AlTelescope</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Inter:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: editorial stack of full-width bands (white / black / orange), 1200px inner column, big condensed headlines, hash-routed views: home, creator-*, admin */
+:root{
+  --bg:#ffffff; --fg:#0b0b0b; --muted:#5f5a55; --line:#e6e1dc; --soft:#f5f2ef;
+  --ink:#0b0b0b; --on-ink:#ffffff; --accent:#ff5a1f; --on-accent:#0b0b0b;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --ar:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e0d0c; --fg:#f4f1ee; --muted:#a69f98; --line:#2a2725; --soft:#181614;
+  --ink:#000000; --on-ink:#ffffff; --accent:#ff6a33; --on-accent:#0b0b0b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e0d0c; --fg:#f4f1ee; --muted:#a69f98; --line:#2a2725; --soft:#181614;
+  --ink:#000000; --on-ink:#ffffff; --accent:#ff6a33; --on-accent:#0b0b0b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);margin:0}
+html[dir="rtl"] body{font-family:var(--ar)}
+html[dir="rtl"] h1,html[dir="rtl"] h2,html[dir="rtl"] h3,html[dir="rtl"] .logo{font-family:var(--ar);letter-spacing:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band{padding-block:88px}
+.band.ink{background:var(--ink);color:var(--on-ink)}
+.band.ink .muted{color:#b9b2ab}
+.band.orange{background:var(--accent);color:var(--on-accent)}
+.band.soft{background:var(--soft)}
+h1,h2,h3{font-family:var(--display);line-height:1;margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(3rem,9vw,7.5rem);font-weight:900;text-transform:uppercase;letter-spacing:-.035em}
+h2{font-size:clamp(2.1rem,5vw,3.8rem);font-weight:900;text-transform:uppercase}
+h3{font-size:1.35rem;font-weight:800}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font:500 .75rem/1 var(--mono);text-transform:uppercase;letter-spacing:.14em;color:var(--accent);display:block;margin-bottom:18px}
+.band.orange .eyebrow{color:var(--on-accent)}
+.lead{font-size:1.2rem;max-width:60ch}
+.stack{display:flex;flex-direction:column;gap:20px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 .95rem/1 var(--body);padding:16px 26px;border-radius:999px;border:2px solid currentColor;background:transparent;color:inherit;text-decoration:none;cursor:pointer}
+html[dir="rtl"] .btn{font-family:var(--ar)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--on-ink)}
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px}
+.logo{font:900 1.35rem/1 var(--display);text-decoration:none;letter-spacing:-.03em;display:flex;align-items:center;gap:8px}
+.logo i{width:22px;height:22px;border-radius:50%;background:var(--accent);display:inline-block;position:relative}
+.logo i::after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--bg)}
+nav.main{display:flex;gap:22px;font-weight:600;font-size:.92rem}
+nav.main a{text-decoration:none}
+nav.main a:hover{color:var(--accent)}
+.tools{display:flex;gap:8px;align-items:center}
+.chip{font:600 .8rem/1 var(--body);padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;text-decoration:none}
+html[dir="rtl"] .chip{font-family:var(--ar)}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+@media (max-width:900px){nav.main{display:none}}
+
+/* hero */
+.hero{padding-block:72px 56px}
+.hero h1 span{color:var(--accent)}
+.hero .grid{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:end;margin-top:40px}
+.scope{aspect-ratio:1;max-width:100%;border-radius:50%;background:radial-gradient(circle at 50% 50%,var(--accent) 0 18%,transparent 18.5%),repeating-radial-gradient(circle at 50% 50%,var(--fg) 0 1px,transparent 1px 34px);opacity:.95;position:relative}
+.scope::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--fg)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px;border-top:2px solid var(--fg);padding-top:24px}
+.stats b{font:900 2.4rem/1 var(--display);display:block;font-variant-numeric:tabular-nums}
+@media (max-width:800px){.hero .grid{grid-template-columns:1fr}.scope{max-width:260px}.stats{grid-template-columns:1fr 1fr 1fr;gap:12px}.stats b{font-size:1.7rem}}
+
+/* marquee of tracks */
+.tracks{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.tracks span{font:800 1rem/1 var(--display);text-transform:uppercase;padding:12px 18px;border:2px solid currentColor;border-radius:999px}
+html[dir="rtl"] .tracks span{font-family:var(--ar)}
+
+/* cards */
+.head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+@media (max-width:980px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.grid3{grid-template-columns:1fr}}
+@media (max-width:480px){.grid4{grid-template-columns:1fr}}
+.card{display:flex;flex-direction:column;gap:14px;min-width:0}
+.thumb{aspect-ratio:4/3;border-radius:14px;background:var(--soft);position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:16px}
+.band.soft .thumb{background:var(--bg)}
+.thumb.t1{background:var(--ink);color:var(--on-ink)}
+.thumb.t2{background:var(--accent);color:var(--on-accent)}
+.thumb .big{font:900 3.2rem/0.9 var(--display);text-transform:uppercase;letter-spacing:-.03em}
+html[dir="rtl"] .thumb .big{font-family:var(--ar);font-size:2.4rem}
+.tag{font:500 .7rem/1 var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.price{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.price a{color:var(--accent);text-decoration:none}
+
+/* offer list (like a menu) */
+.offers{border-top:2px solid currentColor}
+.offer{display:grid;grid-template-columns:60px 1fr 1.2fr auto;gap:24px;align-items:center;padding-block:26px;border-bottom:1px solid rgba(255,255,255,.18);text-decoration:none}
+.offer:hover h3{color:var(--accent)}
+.offer .k{font:500 .8rem var(--mono);color:var(--accent)}
+.offer h3{font-size:clamp(1.4rem,3vw,2.2rem);text-transform:uppercase;font-weight:900}
+.offer .arrow{font-size:1.6rem}
+html[dir="rtl"] .offer .arrow{transform:scaleX(-1)}
+@media (max-width:760px){.offer{grid-template-columns:1fr auto}.offer .k,.offer p{display:none}}
+
+/* featured course */
+.feature{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.feature ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.feature li{display:flex;gap:12px}
+.feature li::before{content:"";flex:none;width:10px;height:10px;margin-top:8px;background:var(--on-accent);border-radius:50%}
+.frame{aspect-ratio:16/10;max-width:100%;background:var(--ink);color:var(--on-ink);border-radius:18px;display:flex;align-items:center;justify-content:center;position:relative}
+.play{width:84px;height:84px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:1.8rem;color:var(--on-accent)}
+@media (max-width:860px){.feature{grid-template-columns:1fr}}
+
+/* creators */
+.creator{text-decoration:none;display:flex;flex-direction:column;gap:12px}
+.avatar{aspect-ratio:1;border-radius:16px;background:var(--soft);display:grid;place-items:center;font:900 3.5rem/1 var(--display);color:var(--fg);overflow:hidden;max-width:100%}
+.creator:nth-child(3n+1) .avatar{background:var(--accent);color:var(--on-accent)}
+.creator:nth-child(3n+2) .avatar{background:var(--ink);color:var(--on-ink)}
+.creator:hover h3{color:var(--accent)}
+
+/* episodes */
+.ep{display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center;padding-block:18px;border-bottom:1px solid var(--line)}
+.ep .n{font:500 .8rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.ep .len{font:500 .8rem var(--mono);color:var(--muted)}
+
+/* quotes */
+blockquote{margin:0;font:600 1.2rem/1.45 var(--body)}
+html[dir="rtl"] blockquote{font-family:var(--ar)}
+.quote{display:flex;flex-direction:column;gap:18px;padding:28px;border:1px solid var(--line);border-radius:16px;min-width:0}
+.quote cite{font-style:normal;font-size:.9rem;color:var(--muted)}
+
+/* newsletter */
+.news{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center}
+form.sub{display:flex;gap:10px;flex-wrap:wrap}
+form.sub input{flex:1 1 220px;min-width:0;padding:16px 20px;border-radius:999px;border:2px solid var(--on-accent);background:transparent;color:var(--on-accent);font:500 1rem var(--body)}
+form.sub input::placeholder{color:var(--on-accent);opacity:.65}
+.ok{font-weight:700;margin-top:12px}
+@media (max-width:860px){.news{grid-template-columns:1fr}}
+
+/* footer */
+footer{background:var(--ink);color:var(--on-ink);padding-block:64px 32px}
+footer .cols{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:32px}
+footer h4{font:500 .75rem var(--mono);text-transform:uppercase;letter-spacing:.12em;color:#b9b2ab;margin:0 0 14px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer a{text-decoration:none}
+footer a:hover{color:var(--accent)}
+footer .giant{font:900 clamp(3rem,12vw,10rem)/.85 var(--display);letter-spacing:-.05em;margin-top:56px;color:var(--accent);overflow-wrap:anywhere}
+@media (max-width:760px){footer .cols{grid-template-columns:1fr 1fr}}
+
+/* creator profile */
+.crumb{font:500 .8rem var(--mono);text-transform:uppercase;letter-spacing:.1em;text-decoration:none;color:var(--muted)}
+.prof{display:grid;grid-template-columns:320px 1fr;gap:48px;align-items:end;margin-top:28px}
+.prof .avatar{font-size:6rem}
+.socials{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:800px){.prof{grid-template-columns:1fr}.prof .avatar{max-width:220px}}
+
+/* admin */
+.admin{display:grid;grid-template-columns:240px 1fr;gap:32px;padding-block:40px 80px}
+.side{display:flex;flex-direction:column;gap:6px;position:sticky;top:90px;align-self:start}
+.side button{text-align:start;padding:12px 14px;border-radius:10px;border:0;background:transparent;color:var(--fg);font:600 .95rem var(--body);cursor:pointer}
+html[dir="rtl"] .side button{font-family:var(--ar)}
+.side button.on{background:var(--fg);color:var(--bg)}
+.panel{border:1px solid var(--line);border-radius:16px;padding:28px;min-width:0}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fields .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.88rem}
+input,textarea,select{font:400 .95rem var(--body);padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:100%}
+html[dir="rtl"] input,html[dir="rtl"] textarea{font-family:var(--ar)}
+textarea{min-height:90px;resize:vertical}
+.items{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:1fr 1fr 110px 40px;gap:10px;align-items:center}
+.x{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:10px;height:44px;cursor:pointer}
+.tbl{width:100%;border-collapse:collapse;font-size:.92rem}
+.tbl th,.tbl td{text-align:start;padding:12px 10px;border-bottom:1px solid var(--line)}
+.tbl th{font:500 .72rem var(--mono);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.pill{font:600 .72rem var(--body);padding:4px 10px;border-radius:999px;background:var(--soft)}
+.pill.live{background:var(--accent);color:var(--on-accent)}
+.scroll{overflow-x:auto}
+.note{font-size:.85rem;color:var(--muted);border-inline-start:3px solid var(--accent);padding-inline-start:12px}
+@media (max-width:860px){.admin{grid-template-columns:1fr}.side{position:static;flex-direction:row;flex-wrap:wrap}.fields{grid-template-columns:1fr}.item{grid-template-columns:1fr 1fr}.item .x{grid-column:auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.btn:hover{transform:none}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#home"><i></i>AlTelescope</a>
+    <nav class="main" id="nav"></nav>
+    <div class="tools">
+      <button class="chip" id="langBtn" type="button">العربية</button>
+      <a class="chip" href="#admin" id="adminBtn">Admin</a>
+    </div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols" id="foot"></div>
+    <div class="giant">AlTelescope</div>
+    <p class="muted" style="color:#b9b2ab;margin-top:24px;font-size:.85rem" id="copy"></p>
+  </div>
+</footer>
+
+<script>
+const T = {
+  en:{
+    nav:["Courses","Workshops","Coaching","Shop","Podcast","Creators","Membership"],
+    admin:"Admin", lang:"العربية",
+    heroEyebrow:"AI · Innovation · Art · Design · Entrepreneurship",
+    heroTitle:'See further. <span>Build</span> bolder.',
+    heroLead:"AlTelescope is an education platform for people who build what comes next. Learn AI, design and business from working creators, then put it to work the same week.",
+    ctaEnroll:"Browse courses", ctaShop:"Shop digital products",
+    stats:[["40+","Courses & workshops"],["25k","Learners"],["12","Creators teaching"]],
+    tracksEyebrow:"Five tracks, one lens",
+    tracks:["Artificial Intelligence","Innovation","Art","Design","Entrepreneurship"],
+    coursesEyebrow:"Start here", coursesTitle:"Popular courses", seeAll:"See all courses",
+    offersEyebrow:"Ways to learn", offersTitle:"Everything we offer",
+    featEyebrow:"Featured course", featTitle:"AI for Creative Business",
+    featLead:"A six-week program on using AI tools to research, design, price and sell creative work. Built for founders, designers and freelancers.",
+    featList:["24 video lessons and 6 live sessions","Templates, prompts and pricing calculators","Certificate and private community access"],
+    featBtn:"Enroll now · $349",
+    shopEyebrow:"Digital products", shopTitle:"Books, toolkits & templates",
+    creatorsEyebrow:"Learn from the people doing the work", creatorsTitle:"Our creators", viewProfile:"View profile",
+    podEyebrow:"Podcast & YouTube", podTitle:"The Telescope Show", podLead:"Weekly conversations with designers, engineers and founders on what they are building and how.", podBtn:"Watch on YouTube",
+    quotesEyebrow:"From our learners", quotesTitle:"What changes after",
+    newsEyebrow:"Newsletter", newsTitle:"One sharp idea every Sunday", newsLead:"Tools, frameworks and opportunities in AI, design and business. Five minutes to read.",
+    emailPh:"Your email address", subscribe:"Subscribe", subOk:"Thanks. This preview doesn't send emails yet; the full build connects your email provider.",
+    memEyebrow:"Membership", memTitle:"Join the Pro community", memLead:"All courses, monthly live workshops, the full toolkit library and a members-only community.", memBtn:"Become a member · $29/mo",
+    foot:[["Learn",["Courses","Workshops","Coaching","Membership"]],["Shop",["Books","Toolkits","Templates","Gift cards"]],["Company",["About","Creators","Consulting","Contact"]]],
+    footLead:"Education for people building what comes next.",
+    copy:"© 2026 AlTelescope. Placeholder content for preview.",
+    back:"← All creators", profEyebrow:"Creator", byCreator:"Courses & products", fromCreator:"Latest from", follow:"Follow",
+    learnWith:"Learn with",
+    adm:{title:"Admin panel", tabs:["Creators","Add creator","Courses","Products","Orders"],
+      creators:"Creators", addNew:"Add creator", name:"Full name", role:"Role / specialty", track:"Track", bio:"Short bio", initials:"Avatar initials",
+      offerings:"Courses & products", addItem:"Add item", itemTitle:"Title", itemType:"Type", itemPrice:"Price (USD)",
+      episodes:"Content (videos / episodes)", addEp:"Add episode", epTitle:"Episode title", epLen:"Length",
+      social:"Social link", save:"Publish creator page", saved:"Published. The creator page is live at",
+      thName:"Name", thTrack:"Track", thItems:"Items", thStatus:"Status", thAct:"Page", live:"Live", open:"Open", del:"Remove",
+      note:"Preview only: creators you add are saved in this browser. The full build stores them in a real database with logins and roles.",
+      soon:"This section is part of the full build. The layout and fields will mirror the Creators form."}
+  },
+  ar:{
+    nav:["الدورات","ورش العمل","الإرشاد","المتجر","البودكاست","المبدعون","العضوية"],
+    admin:"لوحة التحكم", lang:"English",
+    heroEyebrow:"الذكاء الاصطناعي · الابتكار · الفن · التصميم · ريادة الأعمال",
+    heroTitle:'انظر أبعد. <span>ابنِ</span> بجرأة.',
+    heroLead:"آل تلسكوب منصة تعليمية لمن يصنعون المستقبل. تعلّم الذكاء الاصطناعي والتصميم والأعمال من مبدعين يمارسون عملهم، وطبّق ما تعلمته في الأسبوع نفسه.",
+    ctaEnroll:"تصفح الدورات", ctaShop:"تسوق المنتجات الرقمية",
+    stats:[["+40","دورة وورشة"],["25 ألف","متعلم"],["12","مبدعاً يدرّس"]],
+    tracksEyebrow:"خمسة مسارات، عدسة واحدة",
+    tracks:["الذكاء الاصطناعي","الابتكار","الفن","التصميم","ريادة الأعمال"],
+    coursesEyebrow:"ابدأ من هنا", coursesTitle:"الدورات الأكثر طلباً", seeAll:"جميع الدورات",
+    offersEyebrow:"طرق التعلّم", offersTitle:"كل ما نقدمه",
+    featEyebrow:"الدورة المميزة", featTitle:"الذكاء الاصطناعي للأعمال الإبداعية",
+    featLead:"برنامج من ستة أسابيع لاستخدام أدوات الذكاء الاصطناعي في البحث والتصميم والتسعير وبيع العمل الإبداعي. مصمم لرواد الأعمال والمصممين والمستقلين.",
+    featList:["24 درساً مصوراً و6 جلسات مباشرة","قوالب وأوامر وحاسبات تسعير","شهادة ووصول إلى مجتمع خاص"],
+    featBtn:"سجّل الآن · 349$",
+    shopEyebrow:"منتجات رقمية", shopTitle:"كتب وأدوات وقوالب",
+    creatorsEyebrow:"تعلّم ممن يمارسون العمل", creatorsTitle:"مبدعونا", viewProfile:"عرض الصفحة",
+    podEyebrow:"البودكاست ويوتيوب", podTitle:"برنامج التلسكوب", podLead:"حوارات أسبوعية مع مصممين ومهندسين ورواد أعمال عمّا يبنونه وكيف.", podBtn:"شاهد على يوتيوب",
+    quotesEyebrow:"من متعلمينا", quotesTitle:"ما الذي تغيّر",
+    newsEyebrow:"النشرة البريدية", newsTitle:"فكرة واحدة حادة كل أحد", newsLead:"أدوات وأطر عمل وفرص في الذكاء الاصطناعي والتصميم والأعمال. خمس دقائق للقراءة.",
+    emailPh:"بريدك الإلكتروني", subscribe:"اشترك", subOk:"شكراً. هذه المعاينة لا ترسل رسائل بعد؛ النسخة الكاملة تربط مزوّد البريد الخاص بك.",
+    memEyebrow:"العضوية", memTitle:"انضم إلى مجتمع برو", memLead:"جميع الدورات، ورش شهرية مباشرة، مكتبة الأدوات الكاملة ومجتمع خاص بالأعضاء.", memBtn:"اشترك · 29$ شهرياً",
+    foot:[["تعلّم",["الدورات","ورش العمل","الإرشاد","العضوية"]],["المتجر",["الكتب","الأدوات","القوالب","بطاقات الهدايا"]],["الشركة",["من نحن","المبدعون","الاستشارات","تواصل معنا"]]],
+    footLead:"تعليم لمن يصنعون المستقبل.",
+    copy:"© 2026 آل تلسكوب. محتوى مؤقت للمعاينة.",
+    back:"→ جميع المبدعين", profEyebrow:"مبدع", byCreator:"الدورات والمنتجات", fromCreator:"أحدث محتوى من", follow:"تابع",
+    learnWith:"تعلّم مع",
+    adm:{title:"لوحة التحكم", tabs:["المبدعون","إضافة مبدع","الدورات","المنتجات","الطلبات"],
+      creators:"المبدعون", addNew:"إضافة مبدع", name:"الاسم الكامل", role:"الدور / التخصص", track:"المسار", bio:"نبذة قصيرة", initials:"أحرف الصورة",
+      offerings:"الدورات والمنتجات", addItem:"إضافة عنصر", itemTitle:"العنوان", itemType:"النوع", itemPrice:"السعر (دولار)",
+      episodes:"المحتوى (فيديوهات / حلقات)", addEp:"إضافة حلقة", epTitle:"عنوان الحلقة", epLen:"المدة",
+      social:"رابط التواصل", save:"نشر صفحة المبدع", saved:"تم النشر. صفحة المبدع متاحة على",
+      thName:"الاسم", thTrack:"المسار", thItems:"العناصر", thStatus:"الحالة", thAct:"الصفحة", live:"منشور", open:"فتح", del:"حذف",
+      note:"للمعاينة فقط: يُحفظ المبدعون الذين تضيفهم في هذا المتصفح. النسخة الكاملة تحفظهم في قاعدة بيانات حقيقية مع تسجيل دخول وصلاحيات.",
+      soon:"هذا القسم جزء من النسخة الكاملة، وسيتبع نفس تصميم وحقول نموذج المبدعين."}
+  }
+};
+const L = o => (o && typeof o==="object") ? (o[lang]||o.en) : o;
+
+const COURSES = [
+  {t:{en:"Prompting for Designers",ar:"كتابة الأوامر للمصممين"},tag:{en:"AI · 4 weeks",ar:"ذكاء اصطناعي · 4 أسابيع"},price:"$199",big:"AI",cls:"t1"},
+  {t:{en:"Brand Strategy Foundations",ar:"أساسيات استراتيجية العلامة"},tag:{en:"Design · Self-paced",ar:"تصميم · ذاتي"},price:"$249",big:{en:"Brand",ar:"علامة"},cls:"t2"},
+  {t:{en:"From Idea to First Customer",ar:"من الفكرة إلى أول عميل"},tag:{en:"Entrepreneurship · 6 weeks",ar:"ريادة أعمال · 6 أسابيع"},price:"$299",big:{en:"Launch",ar:"انطلق"},cls:""}
+];
+const OFFERS = [
+  {t:{en:"Courses",ar:"الدورات"},d:{en:"Self-paced and cohort programs with projects and feedback.",ar:"برامج ذاتية وجماعية مع مشاريع وتقييم."}},
+  {t:{en:"Workshops",ar:"ورش العمل"},d:{en:"Live, half-day sessions on one skill, online or in person.",ar:"جلسات مباشرة لنصف يوم على مهارة واحدة، عن بعد أو حضورياً."}},
+  {t:{en:"Coaching",ar:"الإرشاد"},d:{en:"One-to-one and small-group sessions with a creator.",ar:"جلسات فردية ومجموعات صغيرة مع أحد المبدعين."}},
+  {t:{en:"Books & Toolkits",ar:"الكتب والأدوات"},d:{en:"Books, templates, prompt packs and frameworks to download.",ar:"كتب وقوالب وحزم أوامر وأطر عمل للتحميل."}},
+  {t:{en:"Consulting",ar:"الاستشارات"},d:{en:"Innovation and AI adoption support for teams and companies.",ar:"دعم الابتكار وتبنّي الذكاء الاصطناعي للفرق والشركات."}},
+  {t:{en:"Membership",ar:"العضوية"},d:{en:"Everything in one plan, plus a members-only community.",ar:"كل شيء في خطة واحدة، مع مجتمع خاص بالأعضاء."}}
+];
+const PRODUCTS = [
+  {t:{en:"The Creative AI Playbook",ar:"دليل الذكاء الاصطناعي الإبداعي"},tag:{en:"Book · PDF + EPUB",ar:"كتاب · PDF وEPUB"},price:"$29",big:{en:"Book",ar:"كتاب"},cls:"t2"},
+  {t:{en:"500 Prompts for Creators",ar:"500 أمر للمبدعين"},tag:{en:"Prompt pack",ar:"حزمة أوامر"},price:"$19",big:"500",cls:"t1"},
+  {t:{en:"Pitch Deck Template Kit",ar:"قوالب العروض التقديمية"},tag:{en:"Template · Figma + Keynote",ar:"قالب · فيجما وكينوت"},price:"$39",big:{en:"Deck",ar:"عرض"},cls:""},
+  {t:{en:"Pricing Calculator",ar:"حاسبة التسعير"},tag:{en:"Toolkit · Sheets",ar:"أداة · جداول"},price:"$15",big:"$",cls:"t2"}
+];
+const EPS = [
+  {n:"EP 48",t:{en:"How designers should think about AI agents",ar:"كيف يفكر المصممون في وكلاء الذكاء الاصطناعي"},len:"52:10"},
+  {n:"EP 47",t:{en:"Pricing creative work in 2026",ar:"تسعير العمل الإبداعي في 2026"},len:"44:32"},
+  {n:"EP 46",t:{en:"From art school to startup founder",ar:"من مدرسة الفنون إلى مؤسس شركة ناشئة"},len:"61:05"}
+];
+const QUOTES = [
+  {q:{en:"I rebuilt my studio's whole proposal process in two weeks. We closed our largest client a month later.",ar:"أعدت بناء طريقة عروضي بالكامل في أسبوعين، وأغلقنا أكبر عميل لنا بعد شهر."},c:{en:"Placeholder name · Studio founder",ar:"اسم مؤقت · مؤسس استوديو"}},
+  {q:{en:"Finally an AI course that talks to designers in our language and shows real projects.",ar:"أخيراً دورة ذكاء اصطناعي تخاطب المصممين بلغتهم وتعرض مشاريع حقيقية."},c:{en:"Placeholder name · Product designer",ar:"اسم مؤقت · مصمم منتجات"}},
+  {q:{en:"The coaching sessions gave me the confidence to quit my job and launch.",ar:"جلسات الإرشاد منحتني الثقة لأترك وظيفتي وأطلق مشروعي."},c:{en:"Placeholder name · Founder",ar:"اسم مؤقت · رائدة أعمال"}}
+];
+const SEED = [
+  {id:"sara-alnoor",name:{en:"Sara Al-Noor",ar:"سارة النور"},ini:"SN",role:{en:"AI product designer",ar:"مصممة منتجات ذكاء اصطناعي"},track:{en:"AI",ar:"الذكاء الاصطناعي"},
+   bio:{en:"Sara designs AI products and teaches designers how to work with models, agents and data. Placeholder bio.",ar:"تصمم سارة منتجات الذكاء الاصطناعي وتعلّم المصممين العمل مع النماذج والوكلاء والبيانات. نبذة مؤقتة."},
+   items:[{t:"Prompting for Designers",type:"Course",price:"199"},{t:"AI UX Patterns Kit",type:"Toolkit",price:"35"},{t:"1:1 Portfolio Review",type:"Coaching",price:"150"}],
+   eps:[{t:"Designing for uncertainty",len:"18:20"},{t:"Agents in your workflow",len:"24:05"}],social:"youtube.com/@placeholder"},
+  {id:"omar-haddad",name:{en:"Omar Haddad",ar:"عمر حداد"},ini:"OH",role:{en:"Brand strategist",ar:"استراتيجي علامات"},track:{en:"Design",ar:"التصميم"},
+   bio:{en:"Omar has built brands for startups and governments across the region. Placeholder bio.",ar:"بنى عمر علامات تجارية لشركات ناشئة وجهات حكومية في المنطقة. نبذة مؤقتة."},
+   items:[{t:"Brand Strategy Foundations",type:"Course",price:"249"},{t:"Brand Workshop",type:"Workshop",price:"120"}],
+   eps:[{t:"Naming a brand",len:"21:40"}],social:"instagram.com/placeholder"},
+  {id:"lina-faris",name:{en:"Lina Faris",ar:"لينا فارس"},ini:"LF",role:{en:"Founder & investor",ar:"مؤسسة ومستثمرة"},track:{en:"Entrepreneurship",ar:"ريادة الأعمال"},
+   bio:{en:"Lina has founded two companies and now coaches early-stage founders. Placeholder bio.",ar:"أسست لينا شركتين وتدرّب الآن رواد الأعمال في المراحل المبكرة. نبذة مؤقتة."},
+   items:[{t:"From Idea to First Customer",type:"Course",price:"299"},{t:"Pitch Deck Template Kit",type:"Template",price:"39"}],
+   eps:[{t:"What investors read first",len:"16:12"}],social:"linkedin.com/in/placeholder"},
+  {id:"yousef-karim",name:{en:"Yousef Karim",ar:"يوسف كريم"},ini:"YK",role:{en:"Digital artist",ar:"فنان رقمي"},track:{en:"Art",ar:"الفن"},
+   bio:{en:"Yousef works across generative art, illustration and motion. Placeholder bio.",ar:"يعمل يوسف في الفن التوليدي والرسم والحركة. نبذة مؤقتة."},
+   items:[{t:"Generative Art Studio",type:"Course",price:"179"}],eps:[{t:"Making a living from art",len:"29:00"}],social:"behance.net/placeholder"}
+];
+
+let lang = "en";
+try{ lang = localStorage.getItem("at-lang") || "en"; }catch(e){}
+function loadCreators(){ let extra=[]; try{ extra = JSON.parse(localStorage.getItem("at-creators")||"[]"); }catch(e){} return SEED.concat(extra); }
+function saveExtra(list){ try{ localStorage.setItem("at-creators", JSON.stringify(list)); }catch(e){} }
+function extras(){ try{ return JSON.parse(localStorage.getItem("at-creators")||"[]"); }catch(e){ return []; } }
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const arrow = "→";
+
+/* ---------- shared section builders (home + creator pages use the same ones) ---------- */
+function secCards(eyebrow,title,list,extraBtn){
+  return `<section class="band"><div class="wrap">
+    <div class="head"><div><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2></div>${extraBtn||""}</div>
+    <div class="${list.length>3?"grid4":"grid3"}">${list.map(c=>`
+      <article class="card">
+        <div class="thumb ${c.cls||""}"><span class="big">${esc(L(c.big))}</span></div>
+        <span class="tag">${esc(L(c.tag))}</span>
+        <h3>${esc(L(c.t))}</h3>
+        <div class="price"><span>${esc(c.price)}</span><a href="#home">${lang==="ar"?"اشترِ الآن":"Buy now"} ${arrow}</a></div>
+      </article>`).join("")}</div></div></section>`;
+}
+function secEpisodes(eyebrow,title,lead,eps,btn){
+  return `<section class="band soft"><div class="wrap feature">
+    <div class="stack"><span class="eyebrow">${esc(eyebrow)}</span><h2>${esc(title)}</h2><p class="lead muted">${esc(lead)}</p>
+      <div class="row"><a class="btn dark" href="https://www.youtube.com" target="_blank" rel="noopener">${esc(btn)} ${arrow}</a></div></div>
+    <div>${eps.map((e,i)=>`<div class="ep"><span class="n">${esc(e.n||("EP "+String(eps.length-i).padStart(2,"0")))}</span><strong>${esc(L(e.t))}</strong><span class="len">${esc(e.len)}</span></div>`).join("")}</div>
+  </div></section>`;
+}
+function secNews(){
+  const t=T[lang];
+  return `<section class="band orange"><div class="wrap news">
+    <div class="stack"><span class="eyebrow">${t.newsEyebrow}</span><h2>${t.newsTitle}</h2><p class="lead">${t.newsLead}</p></div>
+    <div><form class="sub" id="subForm"><input id="subEmail" type="email" required placeholder="${t.emailPh}" aria-label="${t.emailPh}"><button class="btn dark" type="submit">${t.subscribe}</button></form><p class="ok" id="subOk" hidden>${t.subOk}</p></div>
+  </div></section>`;
+}
+function wireNews(){
+  const f=document.getElementById("subForm"); if(!f) return;
+  f.addEventListener("submit",e=>{e.preventDefault();document.getElementById("subOk").hidden=false;f.reset();});
+}
+
+/* ---------- views ---------- */
+function viewHome(){
+  const t=T[lang], creators=loadCreators();
+  return `
+  <section class="hero"><div class="wrap">
+    <span class="eyebrow">${t.heroEyebrow}</span>
+    <h1>${t.heroTitle}</h1>
+    <div class="grid">
+      <div class="stack"><p class="lead">${t.heroLead}</p>
+        <div class="row"><a class="btn primary" href="#courses">${t.ctaEnroll} ${arrow}</a><a class="btn" href="#shop">${t.ctaShop}</a></div></div>
+      <div class="scope" aria-hidden="true"></div>
+    </div>
+    <div class="stats">${t.stats.map(s=>`<div><b>${s[0]}</b><span class="muted">${s[1]}</span></div>`).join("")}</div>
+  </div></section>
+
+  <section class="band ink"><div class="wrap"><span class="eyebrow">${t.tracksEyebrow}</span>
+    <div class="tracks">${t.tracks.map(x=>`<span>${x}</span>`).join("")}</div></div></section>
+
+  <div id="courses"></div>
+  ${secCards(t.coursesEyebrow,t.coursesTitle,COURSES,`<a class="btn" href="#courses">${t.seeAll} ${arrow}</a>`)}
+
+  <section class="band ink"><div class="wrap">
+    <span class="eyebrow">${t.offersEyebrow}</span><h2 style="margin-bottom:40px">${t.offersTitle}</h2>
+    <div class="offers">${OFFERS.map((o,i)=>`<a class="offer" href="#home"><span class="k">${String(i+1).padStart(2,"0")}</span><h3>${esc(L(o.t))}</h3><p class="muted">${esc(L(o.d))}</p><span class="arrow">${arrow}</span></a>`).join("")}</div>
+  </div></section>
+
+  <section class="band orange"><div class="wrap feature">
+    <div class="stack"><span class="eyebrow">${t.featEyebrow}</span><h2>${t.featTitle}</h2><p class="lead">${t.featLead}</p>
+      <ul>${t.featList.map(x=>`<li>${x}</li>`).join("")}</ul>
+      <div class="row"><a class="btn dark" href="#home">${t.featBtn}</a></div></div>
+    <div class="frame"><div class="play" aria-hidden="true">▶</div></div>
+  </div></section>
+
+  <div id="shop"></div>
+  ${secCards(t.shopEyebrow,t.shopTitle,PRODUCTS)}
+
+  <section class="band soft" id="creators"><div class="wrap">
+    <div class="head"><div><span class="eyebrow">${t.creatorsEyebrow}</span><h2>${t.creatorsTitle}</h2></div></div>
+    <div class="grid4">${creators.map(c=>`<a class="creator" href="#creator-${esc(c.id)}">
+      <div class="avatar">${esc(c.ini)}</div><span class="tag">${esc(L(c.track))}</span><h3>${esc(L(c.name))}</h3><span class="muted">${esc(L(c.role))}</span></a>`).join("")}</div>
+  </div></section>
+
+  <div id="podcast"></div>
+  ${secEpisodes(t.podEyebrow,t.podTitle,t.podLead,EPS,t.podBtn).replace('band soft','band')}
+
+  <section class="band soft"><div class="wrap"><span class="eyebrow">${t.quotesEyebrow}</span><h2 style="margin-bottom:40px">${t.quotesTitle}</h2>
+    <div class="grid3">${QUOTES.map(q=>`<figure class="quote" style="margin:0"><blockquote>“${esc(L(q.q))}”</blockquote><cite>${esc(L(q.c))}</cite></figure>`).join("")}</div></div></section>
+
+  <section class="band ink" id="membership"><div class="wrap feature">
+    <div class="stack"><span class="eyebrow">${t.memEyebrow}</span><h2>${t.memTitle}</h2><p class="lead muted">${t.memLead}</p>
+    <div class="row"><a class="btn primary" href="#home">${t.memBtn}</a></div></div>
+    <div class="tracks" style="justify-content:flex-end">${t.nav.slice(0,5).map(x=>`<span>${x}</span>`).join("")}</div>
+  </div></section>
+
+  ${secNews()}`;
+}
+
+function viewCreator(id){
+  const t=T[lang]; const c=loadCreators().find(x=>x.id===id);
+  if(!c) return viewHome();
+  const name=L(c.name);
+  const cards=c.items.map((it,i)=>({t:it.t,tag:it.type,price:"$"+it.price,big:it.type,cls:["t1","t2",""][i%3]}));
+  return `
+  <section class="hero"><div class="wrap">
+    <a class="crumb" href="#creators">${t.back}</a>
+    <div class="prof">
+      <div class="avatar" style="background:var(--accent);color:var(--on-accent)">${esc(c.ini)}</div>
+      <div class="stack"><span class="eyebrow">${t.profEyebrow} · ${esc(L(c.track))}</span>
+        <h1 style="font-size:clamp(2.6rem,7vw,5.5rem)">${esc(name)}</h1>
+        <p class="lead">${esc(L(c.bio))}</p>
+        <div class="row"><a class="btn primary" href="#c-items">${t.learnWith} ${esc(name.split(" ")[0])} ${arrow}</a>
+        ${c.social?`<a class="btn" href="https://${esc(c.social.replace(/^https?:\/\//,""))}" target="_blank" rel="noopener">${t.follow}</a>`:""}</div>
+      </div>
+    </div>
+    <div class="stats"><div><b>${c.items.length}</b><span class="muted">${t.byCreator}</span></div><div><b>${c.eps.length}</b><span class="muted">${lang==="ar"?"حلقات":"Episodes"}</span></div><div><b>${esc(L(c.role)).split(" ")[0]}</b><span class="muted">${esc(L(c.role))}</span></div></div>
+  </div></section>
+  <section class="band ink"><div class="wrap"><span class="eyebrow">${t.tracksEyebrow}</span><div class="tracks"><span>${esc(L(c.track))}</span><span>${esc(L(c.role))}</span></div></div></section>
+  <div id="c-items"></div>
+  ${secCards(t.profEyebrow,t.byCreator,cards)}
+  ${secEpisodes(t.podEyebrow,t.fromCreator+" "+name,L(c.bio),c.eps,t.podBtn)}
+  ${secNews()}`;
+}
+
+let admTab=0;
+function viewAdmin(){
+  const a=T[lang].adm;
+  return `<div class="wrap"><div style="padding-top:40px"><span class="eyebrow">AlTelescope</span><h2>${a.title}</h2></div>
+  <div class="admin">
+    <div class="side">${a.tabs.map((x,i)=>`<button type="button" data-tab="${i}" class="${i===admTab?"on":""}">${x}</button>`).join("")}</div>
+    <div class="panel" id="panel">${admPanel()}</div>
+  </div></div>`;
+}
+function admPanel(){
+  const a=T[lang].adm;
+  if(admTab===0){
+    const all=loadCreators(), ex=extras().map(e=>e.id);
+    return `<div class="head" style="margin-bottom:20px"><h3>${a.creators}</h3><button class="btn primary" type="button" data-tab="1">+ ${a.addNew}</button></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>${a.thName}</th><th>${a.thTrack}</th><th>${a.thItems}</th><th>${a.thStatus}</th><th>${a.thAct}</th></tr></thead>
+    <tbody>${all.map(c=>`<tr><td><strong>${esc(L(c.name))}</strong><br><span class="muted">${esc(L(c.role))}</span></td><td>${esc(L(c.track))}</td><td>${c.items.length}</td><td><span class="pill live">${a.live}</span></td>
+      <td><div class="row"><a class="chip" href="#creator-${esc(c.id)}">${a.open}</a>${ex.includes(c.id)?`<button class="chip" type="button" data-del="${esc(c.id)}">${a.del}</button>`:""}</div></td></tr>`).join("")}</tbody></table></div>
+    <p class="note" style="margin-top:20px">${a.note}</p>`;
+  }
+  if(admTab===1){
+    return `<form id="cForm" class="stack">
+      <h3>${a.addNew}</h3>
+      <div class="fields">
+        <label>${a.name}<input id="f-name" required placeholder="e.g. Nour Saleh"></label>
+        <label>${a.initials}<input id="f-ini" maxlength="3" placeholder="NS"></label>
+        <label>${a.role}<input id="f-role" required placeholder="e.g. Motion designer"></label>
+        <label>${a.track}<select id="f-track">${T[lang].tracks.map(x=>`<option>${x}</option>`).join("")}</select></label>
+        <label class="full">${a.bio}<textarea id="f-bio" placeholder="Two or three sentences about this creator."></textarea></label>
+        <label class="full">${a.social}<input id="f-social" placeholder="youtube.com/@handle"></label>
+      </div>
+      <div class="stack" style="gap:10px"><strong>${a.offerings}</strong><div class="items" id="itemList"></div>
+        <div><button class="chip" type="button" id="addItem">+ ${a.addItem}</button></div></div>
+      <div class="stack" style="gap:10px"><strong>${a.episodes}</strong><div class="items" id="epList"></div>
+        <div><button class="chip" type="button" id="addEp">+ ${a.addEp}</button></div></div>
+      <div class="row"><button class="btn primary" type="submit">${a.save}</button></div>
+      <p class="ok" id="savedMsg" hidden></p>
+      <p class="note">${a.note}</p>
+    </form>`;
+  }
+  return `<h3>${a.tabs[admTab]}</h3><p class="muted" style="margin-top:12px">${a.soon}</p>`;
+}
+let rowN=0;
+function addItemRow(){
+  const a=T[lang].adm, n=++rowN;
+  const d=document.createElement("div"); d.className="item";
+  d.innerHTML=`<input id="it-t-${n}" placeholder="${a.itemTitle}" aria-label="${a.itemTitle}" data-k="t">
+  <select id="it-y-${n}" aria-label="${a.itemType}" data-k="type"><option>Course</option><option>Workshop</option><option>Coaching</option><option>Book</option><option>Toolkit</option><option>Template</option></select>
+  <input id="it-p-${n}" type="number" min="0" placeholder="${a.itemPrice}" aria-label="${a.itemPrice}" data-k="price">
+  <button class="x" type="button" aria-label="${a.del}">×</button>`;
+  d.querySelector(".x").onclick=()=>d.remove();
+  document.getElementById("itemList").appendChild(d);
+}
+function addEpRow(){
+  const a=T[lang].adm, n=++rowN;
+  const d=document.createElement("div"); d.className="item"; d.style.gridTemplateColumns="2fr 110px 40px";
+  d.innerHTML=`<input id="ep-t-${n}" placeholder="${a.epTitle}" aria-label="${a.epTitle}" data-k="t"><input id="ep-l-${n}" placeholder="12:30" aria-label="${a.epLen}" data-k="len"><button class="x" type="button" aria-label="${a.del}">×</button>`;
+  d.querySelector(".x").onclick=()=>d.remove();
+  document.getElementById("epList").appendChild(d);
+}
+function wireAdmin(){
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{admTab=+b.dataset.tab;render();});
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{saveExtra(extras().filter(e=>e.id!==b.dataset.del));render();});
+  const f=document.getElementById("cForm"); if(!f) return;
+  addItemRow(); addEpRow();
+  document.getElementById("addItem").onclick=addItemRow;
+  document.getElementById("addEp").onclick=addEpRow;
+  f.addEventListener("submit",e=>{
+    e.preventDefault();
+    const v=id=>document.getElementById(id).value.trim();
+    const name=v("f-name");
+    const id=name.toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g,"-").replace(/^-|-$/g,"")||("creator-"+Date.now());
+    const rows=sel=>[...document.querySelectorAll(sel+" .item")].map(r=>{const o={};r.querySelectorAll("[data-k]").forEach(i=>o[i.dataset.k]=i.value.trim());return o;});
+    const c={id,name,ini:(v("f-ini")||name.split(/\s+/).map(w=>w[0]).join("").slice(0,2)).toUpperCase(),role:v("f-role"),track:v("f-track"),
+      bio:v("f-bio")||"Bio coming soon.",social:v("f-social"),
+      items:rows("#itemList").filter(i=>i.t).map(i=>({...i,price:i.price||"0"})),
+      eps:rows("#epList").filter(i=>i.t)};
+    const list=extras().filter(x=>x.id!==id); list.push(c); saveExtra(list);
+    const m=document.getElementById("savedMsg"); m.hidden=false;
+    m.innerHTML=`${T[lang].adm.saved} <a href="#creator-${esc(id)}">#creator-${esc(id)}</a>`;
+  });
+}
+
+/* ---------- chrome + router ---------- */
+function chrome(){
+  const t=T[lang];
+  document.documentElement.lang=lang; document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+  const anchors=["courses","home","home","shop","podcast","creators","membership"];
+  document.getElementById("nav").innerHTML=t.nav.map((x,i)=>`<a href="#${anchors[i]}">${x}</a>`).join("");
+  document.getElementById("langBtn").textContent=t.lang;
+  document.getElementById("adminBtn").textContent=t.admin;
+  document.getElementById("foot").innerHTML=`<div class="stack" style="gap:12px"><span class="logo"><i></i>AlTelescope</span><p style="color:#b9b2ab;max-width:32ch">${t.footLead}</p></div>`+
+    t.foot.map(c=>`<div><h4>${c[0]}</h4><ul>${c[1].map(x=>`<li><a href="#home">${x}</a></li>`).join("")}</ul></div>`).join("");
+  document.getElementById("copy").textContent=t.copy;
+}
+const SECTIONS=["courses","shop","creators","podcast","membership"];
+function render(){
+  chrome();
+  const h=(location.hash||"#home").slice(1);
+  const app=document.getElementById("app");
+  document.getElementById("adminBtn").classList.toggle("on",h==="admin");
+  if(h==="admin"){ app.innerHTML=viewAdmin(); wireAdmin(); window.scrollTo(0,0); return; }
+  if(h.startsWith("creator-")){ app.innerHTML=viewCreator(h.slice(8)); wireNews(); window.scrollTo(0,0); return; }
+  app.innerHTML=viewHome(); wireNews();
+  if(SECTIONS.includes(h)){ const el=document.getElementById(h); if(el) el.scrollIntoView(); } else window.scrollTo(0,0);
+}
+document.getElementById("langBtn").onclick=()=>{ lang=lang==="en"?"ar":"en"; try{localStorage.setItem("at-lang",lang);}catch(e){} render(); };
+window.addEventListener("hashchange",render);
+render();
+</script>
